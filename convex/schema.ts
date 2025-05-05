@@ -19,10 +19,12 @@ export default defineSchema({
     name: v.string(),
     email: v.string(),
     organizationId: v.id("organizations"),
-    role: v.string(), // "admin", "member", etc.
+    role: v.string(), // "admin" or "member"
+    title: v.optional(v.string()), // Optional job title like "Treasurer", "Cashier", etc.
     permissions: v.array(v.string()), // Array of permission strings
     active: v.boolean(),
     lastLogin: v.optional(v.number()), // Timestamp
+    status: v.optional(v.string()), // "Active", "Invited", etc.
   })
     .index("by_clerk_id", ["clerkId"])
     .index("by_email", ["email"])
