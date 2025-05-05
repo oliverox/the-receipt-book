@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { useUser } from "@clerk/nextjs"
 import { useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
@@ -13,7 +12,6 @@ import {
   Filter, 
   Plus, 
   Search, 
-  BarChart3, 
   CreditCard,
   Users
 } from "lucide-react"
@@ -28,7 +26,7 @@ import { ReceiptList } from "@/components/receipt-list"
 import { RecentActivity } from "@/components/recent-activity"
 
 export default function DashboardPage() {
-  const router = useRouter()
+  // Router removed as it's not currently used
   const { isLoaded, isSignedIn, user } = useUser()
   const [isInitializing, setIsInitializing] = useState(true)
   
@@ -70,7 +68,7 @@ export default function DashboardPage() {
         heading={`Welcome, ${user?.firstName || userProfile?.name?.split(" ")[0] || "User"}`} 
         text="Manage your receipts and organization activities."
       >
-        <Link href="/dashboard/receipts/new">
+        <Link href="/receipts/new">
           <Button className="bg-emerald-600 hover:bg-emerald-700">
             <Plus className="mr-2 h-4 w-4" />
             New Receipt
@@ -149,7 +147,7 @@ export default function DashboardPage() {
             <div className="flex h-[200px] items-center justify-center rounded-md border border-dashed">
               <div className="flex flex-col items-center gap-1 text-center">
                 <p className="text-sm text-muted-foreground">No receipts found</p>
-                <Link href="/dashboard/receipts/new">
+                <Link href="/receipts/new">
                   <Button variant="outline" size="sm" className="mt-2">
                     Create your first receipt
                   </Button>

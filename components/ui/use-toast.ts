@@ -1,7 +1,5 @@
 // Copied from shadcn/ui toast primitive: https://ui.shadcn.com/docs/components/toast
-import { toast as sonnerToast, type ToastT } from "sonner"
-
-type ToastProps = ToastT
+import { toast as sonnerToast } from "sonner"
 
 interface ToastOptions {
   title?: string

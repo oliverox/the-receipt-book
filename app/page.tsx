@@ -67,7 +67,7 @@ export default function LandingPage() {
                 <FileText className="h-10 w-10 text-emerald-600 mb-4" />
                 <h3 className="text-xl font-bold mb-2">Customizable Receipts</h3>
                 <p className="text-muted-foreground">
-                  Create professional receipts with your organization's branding, custom receipt IDs, and multiple fund
+                  Create professional receipts with your organization&apos;s branding, custom receipt IDs, and multiple fund
                   categories.
                 </p>
               </div>

@@ -5,6 +5,7 @@ import { MoreHorizontal } from "lucide-react"
 import { useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
 import { formatDate } from "@/lib/utils"
+import { Receipt } from "@/lib/definitions"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -17,16 +18,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
-type Receipt = {
-  _id: string;
-  receiptId: string;
-  recipientName: string;
-  totalAmount: number;
-  date: number;
-  status: string;
-  currency?: string;
-}
-
 interface ReceiptListProps {
   receipts: Receipt[];
 }
@@ -35,9 +26,8 @@ export function ReceiptList({ receipts = [] }: ReceiptListProps) {
   // Get organization settings for currency
   const orgSettings = useQuery(api.settings.getOrganizationSettings)
   
-  // Default currency symbol and code
+  // Default currency symbol
   const currencySymbol = orgSettings?.currencySettings?.symbol || "$"
-  const currencyCode = orgSettings?.currencySettings?.code || "USD"
   return (
     <div className="rounded-md border">
       <Table>

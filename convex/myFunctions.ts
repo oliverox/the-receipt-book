@@ -1,10 +1,6 @@
 import { v } from "convex/values";
-import { query, mutation, action } from "./_generated/server";
-import { api } from "./_generated/api";
+import { query, mutation } from "./_generated/server";
 import { ConvexError } from "convex/values";
-
-// Example demo functions - will add the actual functions later
-// For now we're removing the "numbers" table references causing errors
 
 export const listStatistics = query({
   args: {
@@ -14,7 +10,7 @@ export const listStatistics = query({
     viewer: v.union(v.string(), v.null()),
     receiptsCount: v.number(),
   }),
-  handler: async (ctx, args) => {
+  handler: async (ctx) => {
     // Count receipts for the organization
     const identity = await ctx.auth.getUserIdentity();
     
@@ -22,31 +18,6 @@ export const listStatistics = query({
       viewer: identity?.name ?? null,
       receiptsCount: 0, // We'll implement real counting later
     };
-  },
-});
-
-export const addSampleReceipt = mutation({
-  args: {
-    name: v.string(),
-  },
-  returns: v.null(),
-  handler: async (ctx, args) => {
-    // This is a placeholder function that will be implemented later
-    console.log("Would create a receipt for:", args.name);
-    return null;
-  },
-});
-
-export const myAction = action({
-  args: {
-    first: v.number(),
-    second: v.string(),
-  },
-  returns: v.null(),
-  handler: async (ctx, args) => {
-    // Example action - will be implemented later
-    console.log("Running action with args:", args);
-    return null;
   },
 });
 

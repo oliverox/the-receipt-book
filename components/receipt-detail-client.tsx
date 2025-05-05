@@ -22,7 +22,6 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { DashboardShell } from "@/components/dashboard-shell"
-import { ReceiptPreview } from "@/components/receipt-preview"
 
 interface ReceiptDetailClientProps {
   receiptId: string

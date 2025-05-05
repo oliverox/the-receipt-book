@@ -2,8 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Filter, MoreHorizontal, Plus, Search } from "lucide-react"
+import { MoreHorizontal, Plus, Search } from "lucide-react"
 import { useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
 
@@ -23,7 +22,6 @@ import { DashboardShell } from "@/components/dashboard-shell"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export function ContactsClient() {
-  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedType, setSelectedType] = useState<string | null>(null)
   

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { 
   Check, 
   ChevronsUpDown, 
@@ -136,7 +136,7 @@ export default function TeamPage() {
           variant: "destructive"
         })
       }
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "There was an error sending the invitation.",
@@ -159,7 +159,7 @@ export default function TeamPage() {
         title: "Role updated",
         description: "User role has been updated successfully",
       })
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "There was an error updating the role",
@@ -181,7 +181,7 @@ export default function TeamPage() {
         title: "Title updated",
         description: "User title has been updated successfully",
       })
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "There was an error updating the title",
@@ -202,7 +202,7 @@ export default function TeamPage() {
         title: "User removed",
         description: "The user has been removed from your organization",
       })
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "There was an error removing the user",
@@ -342,7 +342,7 @@ export default function TeamPage() {
             <CardHeader className="pb-2">
               <CardTitle className="text-base font-medium">Team Subscription</CardTitle>
               <CardDescription>
-                Your organization's team subscription information
+                Your organization&apos;s team subscription information
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -357,11 +357,11 @@ export default function TeamPage() {
                     {subscriptionInfo.currentTeamSize} of {subscriptionInfo.maxTeamSize} used
                     {subscriptionInfo.viewerCount > 0 && (
                       <span className="text-muted-foreground ml-1">
-                        + {subscriptionInfo.viewerCount} viewer{subscriptionInfo.viewerCount !== 1 ? 's' : ''}
+                        + {subscriptionInfo.viewerCount} viewer{subscriptionInfo.viewerCount !== 1 ? "s" : ""}
                       </span>
                     )}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">Viewers don't count towards your quota</p>
+                  <p className="text-xs text-muted-foreground mt-1">Viewers don&apos;t count towards your quota</p>
                 </div>
                 <div>
                   <p className="font-medium">Status</p>
@@ -386,11 +386,11 @@ export default function TeamPage() {
                   <AlertTriangle className="h-5 w-5 text-amber-500 mr-2 flex-shrink-0 mt-0.5" />
                   <div className="text-sm text-amber-800">
                     <p>
-                      You've reached the maximum number of team members (Admins/Members) for your {subscriptionInfo.currentTier} plan.
+                      You&apos;ve reached the maximum number of team members (Admins/Members) for your {subscriptionInfo.currentTier} plan.
                       To add more team members, please upgrade your subscription.
                     </p>
                     <p className="mt-2 font-medium">
-                      You can still add Viewers with read-only access which don't count towards your plan limit.
+                      You can still add Viewers with read-only access which don&apos;t count towards your plan limit.
                     </p>
                   </div>
                 </div>

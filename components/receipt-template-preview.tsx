@@ -60,7 +60,7 @@ export function ReceiptTemplatePreview({ template }: ReceiptTemplatePreviewProps
         </div>
 
         <div className="mb-6">
-          <h3 className="text-sm font-medium text-muted-foreground mb-2">Fund Contributions</h3>
+          <h3 className="text-sm font-medium text-muted-foreground mb-2">Donation Details</h3>
           <div className="border rounded-md overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-slate-50">

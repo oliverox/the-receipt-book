@@ -2,14 +2,14 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Eye, Plus, Trash, User, X } from "lucide-react"
 import { useMutation, useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
 import { Id } from "@/convex/_generated/dataModel"
-import { formatDate } from "@/lib/utils"
+import { ReceiptItem, Contact, ReceiptType, CreateReceiptData, ReceiptItemRecord } from "@/lib/definitions"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -29,35 +29,6 @@ import {
   CommandList 
 } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-
-interface ReceiptItem {
-  id: string
-  categoryId: string
-  categoryName: string
-  name?: string
-  quantity?: string
-  unitPrice?: string
-  amount: string
-  searchQuery?: string
-}
-
-interface Contact {
-  _id: string
-  name: string
-  email?: string
-  phone?: string
-  address?: string
-  contactType: {
-    _id: string
-    name: string
-  }
-}
-
-interface ReceiptType {
-  _id: string
-  name: string
-  description?: string
-}
 
 export function NewReceiptClient() {
   const router = useRouter()
@@ -144,24 +115,33 @@ export function NewReceiptClient() {
   }, [itemCategories.length, selectedReceiptType, initializeItemCategories])
   
   // Get templates for the selected receipt type
-  const receiptTemplates = useQuery(
+  const templatesQueryResult = useQuery(
     api.templates.listTemplatesByType,
     selectedReceiptType ? { receiptTypeId: selectedReceiptType._id as Id<"receiptTypes"> } : "skip"
-  ) || []
+  )
+  
+  // Memoize receipt templates to avoid dependency changes on every render
+  const receiptTemplates = useMemo(() => templatesQueryResult || [], [templatesQueryResult])
   
   // Initialize templates mutation
   const initializeTemplates = useMutation(api.templates.initializeDefaultTemplates)
   
+  // Memoize the condition to initialize templates
+  const shouldInitializeTemplates = useMemo(
+    () => receiptTemplates.length === 0 && selectedReceiptType !== null,
+    [receiptTemplates.length, selectedReceiptType]
+  )
+  
   // Initialize templates if none exist and we have receipt types
   useEffect(() => {
-    if (receiptTemplates.length === 0 && selectedReceiptType) {
+    if (shouldInitializeTemplates) {
       // Initialize templates
       initializeTemplates()
         .catch(error => {
           console.error("Failed to initialize templates:", error)
         })
     }
-  }, [receiptTemplates.length, selectedReceiptType, initializeTemplates])
+  }, [shouldInitializeTemplates, initializeTemplates])
   
   // Get item categories for autocomplete
   const itemCategorySearchResults = useQuery(
@@ -178,8 +158,7 @@ export function NewReceiptClient() {
   // Create item category mutation
   const createItemCategory = useMutation(api.itemCategories.createItemCategory)
   
-  // Create receipt type mutation
-  const createReceiptType = useMutation(api.receiptTypes.createReceiptType)
+  // Receipt type creation is handled elsewhere
   
   // Default currency symbol and code
   const currencySymbol = orgSettings?.currencySettings?.symbol || "$"
@@ -189,7 +168,7 @@ export function NewReceiptClient() {
   const createReceipt = useMutation(api.receipts.createReceipt)
 
   // Handle contact selection
-  const selectContact = (contact: Contact) => {
+  const selectContact = (contact: Contact): void => {
     setSelectedContact(contact)
     setFormData({
       ...formData,
@@ -202,12 +181,12 @@ export function NewReceiptClient() {
   }
 
   // Clear selected contact
-  const clearSelectedContact = () => {
+  const clearSelectedContact = (): void => {
     setSelectedContact(null)
     // Keep the form data as is
   }
 
-  const addReceiptItem = () => {
+  const addReceiptItem = (): void => {
     const newId = String(receiptItems.length + 1)
     setReceiptItems([...receiptItems, { 
       id: newId, 
@@ -218,13 +197,13 @@ export function NewReceiptClient() {
     }])
   }
 
-  const removeReceiptItem = (id: string) => {
+  const removeReceiptItem = (id: string): void => {
     if (receiptItems.length > 1) {
       setReceiptItems(receiptItems.filter((item) => item.id !== id))
     }
   }
 
-  const updateReceiptItem = (id: string, field: keyof ReceiptItem, value: string) => {
+  const updateReceiptItem = (id: string, field: keyof ReceiptItem, value: string): void => {
     setReceiptItems(receiptItems.map((item) => {
       if (item.id === id) {
         if (field === "categoryId") {
@@ -256,14 +235,14 @@ export function NewReceiptClient() {
   }
   
   // Select a item category from the autocomplete
-  const selectItemCategory = async (id: string, category: { _id: string, name: string }) => {
+  const selectItemCategory = async (id: string, category: { _id: string, name: string }): Promise<void> => {
     updateReceiptItem(id, "categoryId", category._id)
     updateReceiptItem(id, "categoryName", category.name)
     setOpenFundPopoverId(null)
   }
   
   // Create a new item category if it doesn't exist
-  const handleCreateItemCategory = async (id: string) => {
+  const handleCreateItemCategory = async (id: string): Promise<void> => {
     if (!selectedReceiptType) {
       toast({
         title: "Error creating category",
@@ -292,17 +271,18 @@ export function NewReceiptClient() {
           description: `Created new item category: ${item.categoryName}`,
         })
       }
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Something went wrong";
       toast({
         title: "Error creating item category",
-        description: error.message || "Something went wrong",
+        description: errorMessage,
         variant: "destructive"
       })
     }
   }
   
   // Handle receipt type selection
-  const handleReceiptTypeChange = (receiptTypeId: string) => {
+  const handleReceiptTypeChange = (receiptTypeId: string): void => {
     const receiptType = receiptTypes.find(type => type._id === receiptTypeId)
     if (receiptType) {
       setSelectedReceiptType(receiptType)
@@ -327,7 +307,7 @@ export function NewReceiptClient() {
   
   // Select default template when templates load
   useEffect(() => {
-    if (receiptTemplates.length > 0 && !selectedTemplateId) {
+    if (receiptTemplates && receiptTemplates.length > 0 && !selectedTemplateId) {
       // Find the default template
       const defaultTemplate = receiptTemplates.find(template => template.isDefault)
       if (defaultTemplate) {
@@ -339,7 +319,7 @@ export function NewReceiptClient() {
     }
   }, [receiptTemplates, selectedTemplateId])
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { id, value } = e.target
     setFormData({
       ...formData,
@@ -353,7 +333,7 @@ export function NewReceiptClient() {
   }
 
   // Calculate subtotal (sum of all items)
-  const calculateSubtotal = () => {
+  const calculateSubtotal = (): number => {
     return receiptItems
       .reduce((sum, item) => {
         const amount = Number.parseFloat(item.amount) || 0
@@ -362,7 +342,7 @@ export function NewReceiptClient() {
   }
 
   // Calculate tax amount for sales receipts if tax is enabled and not overridden
-  const calculateTaxAmount = () => {
+  const calculateTaxAmount = (): number => {
     // No tax if not a sales receipt, if tax is disabled globally, or if tax is disabled for this receipt
     if (
       selectedReceiptType?.name !== "Sales" || 
@@ -380,7 +360,7 @@ export function NewReceiptClient() {
   }
   
   // Calculate raw total (for API) including tax for sales receipts
-  const calculateRawTotal = () => {
+  const calculateRawTotal = (): number => {
     const subtotal = calculateSubtotal();
     
     // For sales receipts with tax enabled and not overridden, add tax amount
@@ -396,7 +376,7 @@ export function NewReceiptClient() {
   }
   
   // Format total for display with commas
-  const formatTotal = () => {
+  const formatTotal = (): string => {
     const total = calculateRawTotal()
     
     // Format with thousand separators and 2 decimal places
@@ -406,7 +386,7 @@ export function NewReceiptClient() {
     })
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
     setIsLoading(true)
 
@@ -442,25 +422,26 @@ export function NewReceiptClient() {
               receiptTypeId: selectedReceiptType._id as Id<"receiptTypes">
             })
             item.categoryId = categoryId
-          } catch (error: any) {
-            console.error("Error creating item category:", error)
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "Unknown error";
+            console.error("Error creating item category:", errorMessage)
             throw new Error(`Failed to create item category: ${item.categoryName}`)
           }
         }
       }
 
       // Prepare data for API call
-      const receiptData: any = {
+      const receiptData: CreateReceiptData = {
         templateId: selectedTemplateId as Id<"receiptTemplates">,
         receiptTypeId: selectedReceiptType._id as Id<"receiptTypes">,
         recipientName: formData.contributorName,
         recipientEmail: formData.email || undefined,
         recipientPhone: formData.phone || undefined,
-        contactId: selectedContact?._id as unknown as Id<"contacts"> || undefined,
+        contactId: selectedContact?._id as unknown as Id<"contacts">,
         totalAmount: calculateRawTotal(),
         currency: currencyCode,
         date: new Date(formData.receiptDate).getTime(),
-        notes: formData.notes || undefined,
+        notes: formData.notes,
         items: receiptItems.map(item => ({
           itemCategoryId: item.categoryId as unknown as Id<"itemCategories">,
           name: item.name,
@@ -468,7 +449,7 @@ export function NewReceiptClient() {
           unitPrice: item.unitPrice ? parseFloat(item.unitPrice) : undefined,
           amount: parseFloat(item.amount),
           description: undefined
-        }))
+        })) as ReceiptItemRecord[]
       }
       
       // Add tax information for sales receipts with tax enabled
@@ -489,7 +470,7 @@ export function NewReceiptClient() {
       }
 
       // Call the API to create the receipt
-      const result = await createReceipt(receiptData)
+      await createReceipt(receiptData)
 
       toast({
         title: "Receipt created",
@@ -497,11 +478,12 @@ export function NewReceiptClient() {
       })
       
       // Navigate to the receipts list
-      router.push("/dashboard/receipts")
-    } catch (error: any) {
+      router.push("/receipts")
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Something went wrong";
       toast({
         title: "Error creating receipt",
-        description: error.message || "Something went wrong",
+        description: errorMessage,
         variant: "destructive"
       })
       setIsLoading(false)
@@ -512,7 +494,7 @@ export function NewReceiptClient() {
     <DashboardShell>
       <DashboardHeader heading="Create New Receipt" text="Generate a new receipt for contributions received.">
         <div className="flex gap-2">
-          <Link href="/dashboard/receipts">
+          <Link href="/receipts">
             <Button variant="outline">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Cancel
@@ -702,7 +684,7 @@ export function NewReceiptClient() {
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-medium">
                     {selectedReceiptType?.name === "Donation" 
-                      ? "Fund Contributions" 
+                      ? "Donation Details" 
                       : selectedReceiptType?.name === "Sales" 
                         ? "Items" 
                         : "Services"}
@@ -751,28 +733,49 @@ export function NewReceiptClient() {
                         >
                           <PopoverTrigger asChild>
                             <div className="relative">
-                              <Input 
-                                id={`item-category-${item.id}`}
-                                placeholder={`Enter ${selectedReceiptType?.name === "Donation" ? "fund" : selectedReceiptType?.name === "Sales" ? "product" : "service"} category...`}
-                                value={item.categoryName}
-                                disabled={!selectedReceiptType}
-                                onChange={(e) => {
-                                  updateReceiptItem(item.id, "searchQuery", e.target.value)
-                                  updateReceiptItem(item.id, "categoryName", e.target.value)
-                                  if (e.target.value.length > 1 && selectedReceiptType) {
-                                    setOpenFundPopoverId(item.id)
-                                  } else {
-                                    setOpenFundPopoverId(null)
-                                  }
-                                  // Clear the category ID if the name is changed
-                                  if (item.categoryId) {
-                                    updateReceiptItem(item.id, "categoryId", "")
-                                  }
-                                }}
-                              />
+                              {item.categoryId ? (
+                                // Show a badge style UI when a category is selected
+                                <div className="flex items-center border rounded-md h-10 px-3 py-2 cursor-pointer bg-gray-50">
+                                  <div className="flex-1 truncate">
+                                    <span className="font-medium">{item.categoryName}</span>
+                                  </div>
+                                  {/* Show a visual indicator that this field is a dropdown */}
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 text-gray-400">
+                                    <path d="M6 9l6 6 6-6" />
+                                  </svg>
+                                </div>
+                              ) : (
+                                <div className="relative">
+                                  <Input 
+                                    id={`item-category-${item.id}`}
+                                    placeholder={`Select ${selectedReceiptType?.name === "Donation" ? "donation" : selectedReceiptType?.name === "Sales" ? "product" : "service"} category...`}
+                                    value={item.categoryName}
+                                    disabled={!selectedReceiptType}
+                                    className="pr-10"
+                                    onChange={(e) => {
+                                      updateReceiptItem(item.id, "searchQuery", e.target.value)
+                                      updateReceiptItem(item.id, "categoryName", e.target.value)
+                                      if (e.target.value.length > 1 && selectedReceiptType) {
+                                        setOpenFundPopoverId(item.id)
+                                      } else {
+                                        setOpenFundPopoverId(null)
+                                      }
+                                      // Clear the category ID if the name is changed
+                                      if (item.categoryId) {
+                                        updateReceiptItem(item.id, "categoryId", "")
+                                      }
+                                    }}
+                                  />
+                                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                                      <path d="M6 9l6 6 6-6" />
+                                    </svg>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </PopoverTrigger>
-                          <PopoverContent className="p-0" align="start" side="bottom" sideOffset={5}>
+                          <PopoverContent className="p-0 w-[300px]" align="start" side="bottom" sideOffset={5}>
                             <Command>
                               <CommandInput 
                                 placeholder="Search categories..." 
@@ -786,7 +789,7 @@ export function NewReceiptClient() {
                                   <div className="px-2 py-3 text-center text-sm">
                                     <p>No categories found.</p>
                                     <p className="text-xs text-muted-foreground mt-1">
-                                      Press enter to create "{item.categoryName}"
+                                      Press enter to create &quot;{item.categoryName}&quot;
                                     </p>
                                     <Button
                                       variant="outline"
@@ -794,28 +797,68 @@ export function NewReceiptClient() {
                                       className="mt-2 w-full"
                                       onClick={() => handleCreateItemCategory(item.id)}
                                     >
-                                      Create "{item.categoryName}"
+                                      Create &quot;{item.categoryName}&quot;
                                     </Button>
                                   </div>
                                 </CommandEmpty>
-                                <CommandGroup heading="Categories">
-                                  {itemCategorySearchResults.map((category) => (
+                                
+                                {/* Show all available categories when no search is entered */}
+                                {(!item.searchQuery || item.searchQuery.length <= 1) && (
+                                  <CommandGroup heading="Available Categories">
+                                    {itemCategories.map((category) => (
+                                      <CommandItem
+                                        key={category._id}
+                                        value={category.name}
+                                        onSelect={() => selectItemCategory(item.id, category)}
+                                      >
+                                        <div className="flex flex-col">
+                                          <span className="font-medium">{category.name}</span>
+                                          {category.description && (
+                                            <span className="text-xs text-muted-foreground">
+                                              {category.description}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                )}
+                                
+                                {/* Show search results when searching */}
+                                {item.searchQuery && item.searchQuery.length > 1 && (
+                                  <CommandGroup heading="Search Results">
+                                    {itemCategorySearchResults.map((category) => (
+                                      <CommandItem
+                                        key={category._id}
+                                        value={category.name}
+                                        onSelect={() => selectItemCategory(item.id, category)}
+                                      >
+                                        <div className="flex flex-col">
+                                          <span className="font-medium">{category.name}</span>
+                                          {category.description && (
+                                            <span className="text-xs text-muted-foreground">
+                                              {category.description}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                )}
+                                
+                                {/* Add a "Create New" option at the bottom */}
+                                {item.categoryName && (
+                                  <CommandGroup heading="Create New">
                                     <CommandItem
-                                      key={category._id}
-                                      value={category.name}
-                                      onSelect={() => selectItemCategory(item.id, category)}
+                                      onSelect={() => handleCreateItemCategory(item.id)}
                                     >
-                                      <div className="flex flex-col">
-                                        <span className="font-medium">{category.name}</span>
-                                        {category.description && (
-                                          <span className="text-xs text-muted-foreground">
-                                            {category.description}
-                                          </span>
-                                        )}
+                                      <div className="flex items-center">
+                                        <Plus className="mr-2 h-4 w-4" />
+                                        <span>Create "{item.categoryName}"</span>
                                       </div>
                                     </CommandItem>
-                                  ))}
-                                </CommandGroup>
+                                  </CommandGroup>
+                                )}
                               </CommandList>
                             </Command>
                           </PopoverContent>
@@ -888,7 +931,7 @@ export function NewReceiptClient() {
                   >
                     <Plus className="mr-2 h-4 w-4" />
                     Add Another {selectedReceiptType?.name === "Donation" 
-                      ? "Fund" 
+                      ? "Donation" 
                       : selectedReceiptType?.name === "Sales" 
                         ? "Item" 
                         : "Service"}
@@ -962,7 +1005,7 @@ export function NewReceiptClient() {
         </Card>
 
         <div className="flex justify-end gap-4">
-          <Link href="/dashboard/receipts">
+          <Link href="/receipts">
             <Button variant="outline">Cancel</Button>
           </Link>
           <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700" disabled={isLoading}>

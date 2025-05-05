@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { ConvexError } from "convex/values";
+import { Id } from "./_generated/dataModel";
 
 /**
  * Checks if item categories exist for a specific receipt type.
@@ -297,5 +298,230 @@ export const createItemCategory = mutation({
     });
 
     return categoryId;
+  },
+});
+
+/**
+ * Update an existing item category.
+ */
+export const updateItemCategory = mutation({
+  args: {
+    id: v.id("itemCategories"),
+    name: v.string(),
+    description: v.optional(v.string()),
+  },
+  returns: v.id("itemCategories"),
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new ConvexError("Not authenticated");
+    }
+
+    // Get user
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+
+    if (!user || !user.organizationId) {
+      throw new ConvexError("User or organization not found");
+    }
+
+    // Get the existing category
+    const category = await ctx.db.get(args.id);
+    if (!category) {
+      throw new ConvexError("Category not found");
+    }
+
+    // Ensure this category belongs to the user's organization
+    if (category.organizationId !== user.organizationId) {
+      throw new ConvexError("Not authorized to modify this category");
+    }
+
+    // Update the category
+    await ctx.db.patch(args.id, {
+      name: args.name,
+      description: args.description,
+    });
+
+    // Log activity
+    await ctx.db.insert("activityLogs", {
+      organizationId: user.organizationId,
+      userId: user._id,
+      action: "update_item_category",
+      resourceType: "itemCategories",
+      resourceId: args.id,
+      timestamp: Date.now(),
+    });
+
+    return args.id;
+  },
+});
+
+/**
+ * Delete an item category (mark as inactive).
+ */
+export const deleteItemCategory = mutation({
+  args: {
+    id: v.id("itemCategories"),
+  },
+  returns: v.boolean(),
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new ConvexError("Not authenticated");
+    }
+
+    // Get user
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+
+    if (!user || !user.organizationId) {
+      throw new ConvexError("User or organization not found");
+    }
+
+    // Get the existing category
+    const category = await ctx.db.get(args.id);
+    if (!category) {
+      throw new ConvexError("Category not found");
+    }
+
+    // Ensure this category belongs to the user's organization
+    if (category.organizationId !== user.organizationId) {
+      throw new ConvexError("Not authorized to modify this category");
+    }
+
+    // Check if the category is used in any receipts
+    const receipts = await ctx.db
+      .query("receiptItems")
+      .filter((q) => q.eq(q.field("itemCategoryId"), args.id))
+      .first();
+
+    if (receipts) {
+      // If category is used, mark as inactive instead of deleting
+      await ctx.db.patch(args.id, {
+        active: false,
+      });
+    } else {
+      // If not used, we can delete it completely
+      await ctx.db.delete(args.id);
+    }
+
+    // Log activity
+    await ctx.db.insert("activityLogs", {
+      organizationId: user.organizationId,
+      userId: user._id,
+      action: "delete_item_category",
+      resourceType: "itemCategories",
+      resourceId: args.id,
+      timestamp: Date.now(),
+    });
+
+    return true;
+  },
+});
+
+/**
+ * List all item categories (including inactive ones) for management.
+ */
+export const listAllItemCategories = query({
+  args: {
+    receiptTypeId: v.id("receiptTypes"),
+  },
+  returns: v.array(
+    v.object({
+      _id: v.id("itemCategories"),
+      name: v.string(),
+      description: v.optional(v.string()),
+      active: v.boolean(),
+      createdAt: v.number(),
+      receiptTypeId: v.id("receiptTypes"),
+    })
+  ),
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new ConvexError("Not authenticated");
+    }
+
+    // Get user
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+
+    if (!user || !user.organizationId) {
+      throw new ConvexError("User or organization not found");
+    }
+
+    // Get all categories for this receipt type, including inactive ones
+    const categories = await ctx.db
+      .query("itemCategories")
+      .withIndex("by_receipt_type", (q) => 
+        q.eq("organizationId", user.organizationId).eq("receiptTypeId", args.receiptTypeId)
+      )
+      .collect();
+
+    return categories.map(category => ({
+      _id: category._id,
+      name: category.name,
+      description: category.description,
+      active: category.active,
+      createdAt: category.createdAt,
+      receiptTypeId: category.receiptTypeId,
+    }));
+  },
+});
+
+/**
+ * Get a specific item category by ID.
+ */
+export const getItemCategory = query({
+  args: {
+    id: v.id("itemCategories"),
+  },
+  returns: v.object({
+    _id: v.id("itemCategories"),
+    name: v.string(),
+    description: v.optional(v.string()),
+    active: v.boolean(),
+    receiptTypeId: v.id("receiptTypes"),
+  }),
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new ConvexError("Not authenticated");
+    }
+
+    // Get user
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+
+    if (!user || !user.organizationId) {
+      throw new ConvexError("User or organization not found");
+    }
+
+    // Get the category
+    const category = await ctx.db.get(args.id);
+    if (!category) {
+      throw new ConvexError("Category not found");
+    }
+
+    // Ensure this category belongs to the user's organization
+    if (category.organizationId !== user.organizationId) {
+      throw new ConvexError("Not authorized to view this category");
+    }
+
+    return {
+      _id: category._id,
+      name: category.name,
+      description: category.description,
+      active: category.active,
+      receiptTypeId: category.receiptTypeId,
+    };
   },
 });
