@@ -54,7 +54,7 @@ export function ReceiptList({ receipts = [] }: ReceiptListProps) {
           {receipts && receipts.map((receipt) => (
             <TableRow key={receipt._id}>
               <TableCell>
-                <Link href={`/dashboard/receipts/${receipt._id}`} className="font-medium hover:underline">
+                <Link href={`/receipts/${receipt._id}`} className="font-medium hover:underline">
                   {receipt.receiptId}
                 </Link>
               </TableCell>
@@ -85,7 +85,7 @@ export function ReceiptList({ receipts = [] }: ReceiptListProps) {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <Link href={`/dashboard/receipts/${receipt._id}`}>
+                    <Link href={`/receipts/${receipt._id}`}>
                       <DropdownMenuItem>View details</DropdownMenuItem>
                     </Link>
                     <DropdownMenuItem>Download PDF</DropdownMenuItem>

@@ -46,7 +46,7 @@ export function ContactDetailClient({ contactId }: ContactDetailClientProps) {
   
   // If we somehow got to this page with a 'new' ID, redirect to the new contact page
   if (skipQuery) {
-    router.push('/dashboard/contacts/new');
+    router.push('/contacts/new');
     return null;
   }
   
@@ -58,7 +58,7 @@ export function ContactDetailClient({ contactId }: ContactDetailClientProps) {
           heading="Loading Contact..."
           text="Please wait while we load the contact details."
         >
-          <Link href="/dashboard/contacts">
+          <Link href="/contacts">
             <Button variant="outline">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Contacts
@@ -83,19 +83,19 @@ export function ContactDetailClient({ contactId }: ContactDetailClientProps) {
         text={`Contact details for ${contact.name}`}
       >
         <div className="flex gap-2">
-          <Link href="/dashboard/contacts">
+          <Link href="/contacts">
             <Button variant="outline">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Contacts
             </Button>
           </Link>
-          <Link href={`/dashboard/contacts/${contactId}/edit`}>
+          <Link href={`/contacts/${contactId}/edit`}>
             <Button variant="outline">
               <Edit className="mr-2 h-4 w-4" />
               Edit
             </Button>
           </Link>
-          <Link href="/dashboard/receipts/new">
+          <Link href="/receipts/new">
             <Button className="bg-emerald-600 hover:bg-emerald-700">
               <UserPlus className="mr-2 h-4 w-4" />
               New Receipt
@@ -172,7 +172,7 @@ export function ContactDetailClient({ contactId }: ContactDetailClientProps) {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Recent Receipts</CardTitle>
-            <Link href="/dashboard/receipts/new">
+            <Link href="/receipts/new">
               <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">
                 <UserPlus className="mr-2 h-3 w-3" />
                 New Receipt
@@ -183,7 +183,7 @@ export function ContactDetailClient({ contactId }: ContactDetailClientProps) {
             {receipts.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-32 p-4 text-center">
                 <p className="text-sm text-muted-foreground mb-2">No receipts found for this contact</p>
-                <Link href="/dashboard/receipts/new">
+                <Link href="/receipts/new">
                   <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">
                     Create First Receipt
                   </Button>
@@ -203,7 +203,7 @@ export function ContactDetailClient({ contactId }: ContactDetailClientProps) {
                   {receipts.map((receipt) => (
                     <TableRow key={receipt._id}>
                       <TableCell>
-                        <Link href={`/dashboard/receipts/${receipt._id}`} className="hover:underline">
+                        <Link href={`/receipts/${receipt._id}`} className="hover:underline">
                           {receipt.receiptId}
                         </Link>
                       </TableCell>

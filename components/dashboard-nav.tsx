@@ -18,37 +18,37 @@ export function DashboardNav() {
           Dashboard
         </Button>
       </Link>
-      <Link href="/dashboard/receipts">
+      <Link href="/receipts">
         <Button
           variant="ghost"
-          className={cn("w-full justify-start", pathname.includes("/dashboard/receipts") && "bg-muted")}
+          className={cn("w-full justify-start", pathname.includes("/receipts") && "bg-muted")}
         >
           <FileText className="mr-2 h-4 w-4" />
           Receipts
         </Button>
       </Link>
-      <Link href="/dashboard/contacts">
+      <Link href="/contacts">
         <Button
           variant="ghost"
-          className={cn("w-full justify-start", pathname.includes("/dashboard/contacts") && "bg-muted")}
+          className={cn("w-full justify-start", pathname.includes("/contacts") && "bg-muted")}
         >
           <UserPlus className="mr-2 h-4 w-4" />
           Contacts
         </Button>
       </Link>
-      <Link href="/dashboard/team">
+      <Link href="/team">
         <Button
           variant="ghost"
-          className={cn("w-full justify-start", pathname === "/dashboard/team" && "bg-muted")}
+          className={cn("w-full justify-start", pathname === "/team" && "bg-muted")}
         >
           <Users className="mr-2 h-4 w-4" />
           Team
         </Button>
       </Link>
-      <Link href="/dashboard/settings">
+      <Link href="/settings">
         <Button
           variant="ghost"
-          className={cn("w-full justify-start", pathname === "/dashboard/settings" && "bg-muted")}
+          className={cn("w-full justify-start", pathname === "/settings" && "bg-muted")}
         >
           <Settings className="mr-2 h-4 w-4" />
           Settings

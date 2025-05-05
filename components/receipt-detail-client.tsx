@@ -51,7 +51,7 @@ export function ReceiptDetailClient({ receiptId }: ReceiptDetailClientProps) {
           heading="Loading Receipt..."
           text="Please wait while we load the receipt details."
         >
-          <Link href="/dashboard/receipts">
+          <Link href="/receipts">
             <Button variant="outline">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Receipts
@@ -112,7 +112,7 @@ export function ReceiptDetailClient({ receiptId }: ReceiptDetailClientProps) {
     setTimeout(() => {
       setIsVoiding(false)
       setIsVoidDialogOpen(false)
-      router.push("/dashboard/receipts")
+      router.push("/receipts")
     }, 1500)
   }
 
@@ -123,7 +123,7 @@ export function ReceiptDetailClient({ receiptId }: ReceiptDetailClientProps) {
         text="View receipt details and download or share the receipt."
       >
         <div className="flex gap-2">
-          <Link href="/dashboard/receipts">
+          <Link href="/receipts">
             <Button variant="outline">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Receipts

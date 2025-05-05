@@ -13,7 +13,7 @@ export default function Loading() {
         heading="Loading Receipt..."
         text="Please wait while we load the receipt details."
       >
-        <Link href="/dashboard/receipts">
+        <Link href="/receipts">
           <Button variant="outline">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Receipts

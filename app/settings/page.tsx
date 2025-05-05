@@ -251,53 +251,82 @@ export default function SettingsPage() {
     setIsLoading(true)
     
     try {
-      // This would normally update a default template in the database
-      // For now we just show success
+      // Update template settings - just a placeholder for now
+      setIsLoading(false)
       
       // Show success message
-      setShowSuccess(true)
-      setTimeout(() => setShowSuccess(false), 3000)
-      
       toast({
         title: "Template saved",
-        description: `The "${selectedTemplate}" template is now your default.`,
+        description: "Your receipt template has been updated successfully.",
       })
     } catch (error) {
       console.error("Error saving template:", error)
       toast({
         title: "Error saving template",
-        description: "There was a problem saving your template choice. Please try again.",
+        description: "There was a problem saving your template. Please try again.",
         variant: "destructive",
       })
     } finally {
       setIsLoading(false)
     }
   }
-
+  
+  // Create a new fund category
+  const handleCreateFundCategory = async (name: string) => {
+    try {
+      await createFundCategory({
+        name,
+      })
+      
+      toast({
+        title: "Fund category created",
+        description: "The fund category has been created successfully.",
+      })
+    } catch (error) {
+      console.error("Error creating fund category:", error)
+      toast({
+        title: "Error creating category",
+        description: "There was a problem creating the fund category. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+  
+  if (isDataLoading) {
+    return (
+      <DashboardShell>
+        <div className="flex h-[50vh] items-center justify-center">
+          <div className="flex flex-col items-center gap-2">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600"></div>
+            <p className="text-sm text-muted-foreground">Loading settings...</p>
+          </div>
+        </div>
+      </DashboardShell>
+    )
+  }
+  
   return (
     <DashboardShell>
-      <DashboardHeader heading="Settings" text="Manage your organization settings and preferences." />
-
+      <DashboardHeader heading="Settings" text="Manage your organization and receipt settings." />
       <Tabs defaultValue={defaultTab} className="space-y-4">
         <TabsList>
           <TabsTrigger value="organization">Organization</TabsTrigger>
           <TabsTrigger value="receipt">Receipt Settings</TabsTrigger>
-          <TabsTrigger value="templates">Receipt Templates</TabsTrigger>
+          <TabsTrigger value="templates">Templates</TabsTrigger>
           <TabsTrigger value="billing">Billing</TabsTrigger>
         </TabsList>
-
         <TabsContent value="organization" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Organization Information</CardTitle>
-              <CardDescription>Update your organization details that will appear on receipts.</CardDescription>
+              <CardDescription>Update your organization's details and contact information.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="org-name">Organization Name</Label>
                 <Input 
                   id="org-name" 
-                  value={orgName}
+                  value={orgName} 
                   onChange={(e) => setOrgName(e.target.value)}
                   disabled={isDataLoading || isLoading}
                 />
@@ -332,120 +361,57 @@ export default function SettingsPage() {
                   disabled={isDataLoading || isLoading}
                 />
               </div>
+              <Separator className="my-4" />
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="currency-code">Currency</Label>
-                  <select
-                    id="currency-code"
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    value={currencyCode === "CUSTOM" ? "CUSTOM" : currencyCode}
-                    onChange={(e) => {
-                      const selectedValue = e.target.value;
-                      
-                      if (selectedValue === "CUSTOM") {
-                        // Just set to CUSTOM and don't change anything else
-                        setCurrencyCode("CUSTOM");
-                      } else {
-                        setCurrencyCode(selectedValue);
-                        
-                        // Set the symbol based on currency code
-                        switch (selectedValue) {
-                          case "USD":
-                            setCurrencySymbol("$");
-                            break;
-                          case "EUR":
-                            setCurrencySymbol("€");
-                            break;
-                          case "GBP":
-                            setCurrencySymbol("£");
-                            break;
-                          case "JPY":
-                            setCurrencySymbol("¥");
-                            break;
-                          case "INR":
-                            setCurrencySymbol("₹");
-                            break;
-                          case "CAD":
-                          case "AUD":
-                          case "NZD":
-                            setCurrencySymbol("$");
-                            break;
-                          default:
-                            setCurrencySymbol("$");
-                        }
-                      }
-                    }}
-                    disabled={isDataLoading || isLoading}
-                  >
-                    <option value="USD">US Dollar (USD)</option>
-                    <option value="EUR">Euro (EUR)</option>
-                    <option value="GBP">British Pound (GBP)</option>
-                    <option value="CAD">Canadian Dollar (CAD)</option>
-                    <option value="AUD">Australian Dollar (AUD)</option>
-                    <option value="INR">Indian Rupee (INR)</option>
-                    <option value="JPY">Japanese Yen (JPY)</option>
-                    <option value="CNY">Chinese Yuan (CNY)</option>
-                    <option value="NZD">New Zealand Dollar (NZD)</option>
-                    <option value="CUSTOM">Custom Currency</option>
-                  </select>
-                </div>
-                
-                {currencyCode === "CUSTOM" ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="custom-currency-code">Custom Currency Code</Label>
-                      <Input 
-                        id="custom-currency-code" 
-                        value={customCurrencyCode || ""}
-                        onChange={(e) => setCustomCurrencyCode(e.target.value.toUpperCase())}
-                        disabled={isDataLoading || isLoading}
-                        placeholder="Enter code (e.g., BTC)"
-                        maxLength={5}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="custom-currency-symbol">Currency Symbol</Label>
-                      <Input 
-                        id="custom-currency-symbol" 
-                        value={currencySymbol}
-                        onChange={(e) => setCurrencySymbol(e.target.value)}
-                        disabled={isDataLoading || isLoading}
-                        placeholder="Enter symbol (e.g., ₿)"
-                      />
-                    </div>
-                    <div className="col-span-1 sm:col-span-2">
-                      <p className="text-xs text-muted-foreground">
-                        Enter a custom currency code (like BTC or ETH) and symbol
-                      </p>
-                    </div>
-                  </div>
-                ) : (
+                <h3 className="text-md font-medium">Currency Settings</h3>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="currency-symbol">Currency Symbol</Label>
+                    <Label htmlFor="currency-code">Currency</Label>
+                    <select
+                      id="currency-code"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      value={currencyCode}
+                      onChange={(e) => setCurrencyCode(e.target.value)}
+                      disabled={isDataLoading || isLoading}
+                    >
+                      <option value="USD">US Dollar (USD)</option>
+                      <option value="EUR">Euro (EUR)</option>
+                      <option value="GBP">British Pound (GBP)</option>
+                      <option value="CAD">Canadian Dollar (CAD)</option>
+                      <option value="AUD">Australian Dollar (AUD)</option>
+                      <option value="INR">Indian Rupee (INR)</option>
+                      <option value="JPY">Japanese Yen (JPY)</option>
+                      <option value="CNY">Chinese Yuan (CNY)</option>
+                      <option value="NZD">New Zealand Dollar (NZD)</option>
+                      <option value="CUSTOM">Other / Custom</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="currency-symbol">Symbol</Label>
                     <Input 
                       id="currency-symbol" 
                       value={currencySymbol}
                       onChange={(e) => setCurrencySymbol(e.target.value)}
-                      disabled={isDataLoading || isLoading}
-                      placeholder="$"
+                      disabled={isDataLoading || isLoading || currencyCode !== "CUSTOM"}
                     />
-                    <p className="text-xs text-muted-foreground">
-                      The symbol will appear before amounts on receipts
+                  </div>
+                </div>
+                
+                {currencyCode === "CUSTOM" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="custom-currency-code">Custom Currency Code</Label>
+                    <Input 
+                      id="custom-currency-code" 
+                      value={customCurrencyCode}
+                      onChange={(e) => setCustomCurrencyCode(e.target.value)}
+                      disabled={isDataLoading || isLoading}
+                      placeholder="e.g., MXN, BRL, SGD"
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Enter a 3-letter ISO currency code for your custom currency
                     </p>
                   </div>
                 )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="org-logo">Organization Logo</Label>
-                <div className="flex items-center gap-4">
-                  <div className="h-16 w-16 rounded-md border flex items-center justify-center bg-slate-50">
-                    <FileText className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                  <Button variant="outline" size="sm">
-                    <Upload className="mr-2 h-4 w-4" />
-                    Upload Logo
-                  </Button>
-                </div>
               </div>
             </CardContent>
             <CardFooter>
@@ -459,62 +425,6 @@ export default function SettingsPage() {
                 <Button
                   className="bg-emerald-600 hover:bg-emerald-700"
                   onClick={handleSaveOrgInfo}
-                  disabled={isLoading || isDataLoading}
-                >
-                  {isLoading ? "Saving..." : "Save Changes"}
-                </Button>
-              </div>
-            </CardFooter>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Signature Settings</CardTitle>
-              <CardDescription>Add a signature that will appear on your receipts.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="signature-name">Signatory Name</Label>
-                <Input 
-                  id="signature-name" 
-                  value={signatoryName}
-                  onChange={(e) => setSignatoryName(e.target.value)}
-                  disabled={isDataLoading || isLoading}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="signature-title">Signatory Title</Label>
-                <Input 
-                  id="signature-title" 
-                  value={signatoryTitle}
-                  onChange={(e) => setSignatoryTitle(e.target.value)}
-                  disabled={isDataLoading || isLoading}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="signature-image">Signature Image</Label>
-                <div className="flex items-center gap-4">
-                  <div className="h-16 w-32 rounded-md border flex items-center justify-center bg-slate-50">
-                    <Pencil className="h-6 w-6 text-muted-foreground" />
-                  </div>
-                  <Button variant="outline" size="sm">
-                    <Upload className="mr-2 h-4 w-4" />
-                    Upload Signature
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <div className="flex items-center gap-2 w-full justify-end">
-                {showSuccess && (
-                  <div className="flex items-center text-emerald-600 text-sm">
-                    <CheckCircle className="h-4 w-4 mr-1" />
-                    <span>Changes saved</span>
-                  </div>
-                )}
-                <Button
-                  className="bg-emerald-600 hover:bg-emerald-700"
-                  onClick={handleSaveReceiptSettings}
                   disabled={isLoading || isDataLoading}
                 >
                   {isLoading ? "Saving..." : "Save Changes"}
@@ -768,9 +678,9 @@ export default function SettingsPage() {
                         <div className="h-4 w-1/2 bg-slate-300 rounded"></div>
                       </div>
                       <div className="flex-1 flex flex-col gap-1">
-                        <div className="h-2 bg-slate-200 rounded w-full"></div>
-                        <div className="h-2 bg-slate-200 rounded w-full"></div>
                         <div className="h-2 bg-slate-200 rounded w-3/4"></div>
+                        <div className="h-2 bg-slate-200 rounded w-1/2"></div>
+                        <div className="h-2 bg-slate-200 rounded w-2/3"></div>
                       </div>
                     </div>
                   </div>
@@ -788,11 +698,11 @@ export default function SettingsPage() {
                 >
                   <div className="aspect-[3/4] rounded bg-slate-100 flex items-center justify-center mb-2">
                     <div className="w-3/4 h-3/4 bg-white rounded shadow-sm p-2 flex flex-col">
-                      <div className="h-4 w-1/3 bg-slate-300 rounded mb-4 mx-auto"></div>
+                      <div className="h-4 w-20 bg-slate-200 rounded mb-4 mx-auto"></div>
                       <div className="flex-1 flex flex-col gap-1">
-                        <div className="h-2 bg-slate-200 rounded w-1/2 mx-auto"></div>
-                        <div className="h-2 bg-slate-200 rounded w-3/4 mx-auto"></div>
-                        <div className="h-2 bg-slate-200 rounded w-1/2 mx-auto"></div>
+                        <div className="h-2 bg-slate-200 rounded w-3/4"></div>
+                        <div className="h-2 bg-slate-200 rounded w-1/2"></div>
+                        <div className="h-2 bg-slate-200 rounded w-2/3"></div>
                       </div>
                     </div>
                   </div>
@@ -802,16 +712,16 @@ export default function SettingsPage() {
                   </div>
                 </div>
               </div>
+              <div className="mt-6">
+                <Button 
+                  className="bg-emerald-600 hover:bg-emerald-700"
+                  onClick={handleSaveTemplate} 
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Saving..." : "Apply Template"}
+                </Button>
+              </div>
             </CardContent>
-            <CardFooter>
-              <Button
-                className="ml-auto bg-emerald-600 hover:bg-emerald-700"
-                onClick={handleSaveTemplate}
-                disabled={isLoading || isDataLoading}
-              >
-                {isLoading ? "Saving..." : "Save Template"}
-              </Button>
-            </CardFooter>
           </Card>
 
           <Card>
@@ -820,7 +730,7 @@ export default function SettingsPage() {
               <CardDescription>Preview how your receipts will look with the selected template.</CardDescription>
             </CardHeader>
             <CardContent>
-              <ReceiptTemplatePreview template={selectedTemplate} />
+              <ReceiptTemplatePreview templateName={selectedTemplate} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -831,104 +741,108 @@ export default function SettingsPage() {
               <CardTitle>Subscription Plan</CardTitle>
               <CardDescription>Manage your subscription and billing information.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="rounded-lg border p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium">Professional Plan</h3>
-                    <p className="text-sm text-muted-foreground">$59/month</p>
+            <CardContent className="space-y-6">
+              <div className="rounded-md border p-6">
+                <div className="flex items-center gap-4">
+                  <div className="rounded-full bg-emerald-600 text-white p-3">
+                    <CreditCard className="h-6 w-6" />
                   </div>
-                  <Button variant="outline" size="sm">
-                    Change Plan
-                  </Button>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-medium">Starter Plan</h3>
+                    <p className="text-sm text-muted-foreground">$0 per month</p>
+                  </div>
+                  <Button className="bg-emerald-600 hover:bg-emerald-700" disabled>Current Plan</Button>
                 </div>
-                <Separator className="my-4" />
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Receipts per month</span>
-                    <span>500</span>
+                <div className="mt-4 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-emerald-600" />
+                    <span className="text-sm">100 receipts per month</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Team members</span>
-                    <span>5</span>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-emerald-600" />
+                    <span className="text-sm">Basic receipt templates</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Receipt templates</span>
-                    <span>Advanced</span>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-emerald-600" />
+                    <span className="text-sm">Email receipts</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Email & WhatsApp integration</span>
-                    <span>Included</span>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-emerald-600" />
+                    <span className="text-sm">CSV exports</span>
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Payment Method</CardTitle>
-              <CardDescription>Update your payment information.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-4">
-                <div className="h-12 w-16 rounded-md border flex items-center justify-center bg-slate-50">
-                  <CreditCard className="h-6 w-6 text-muted-foreground" />
+              <div className="rounded-md border p-6 bg-slate-50">
+                <div className="flex items-center gap-4">
+                  <div className="rounded-full bg-slate-200 text-slate-700 p-3">
+                    <CreditCard className="h-6 w-6" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-medium">Professional Plan</h3>
+                    <p className="text-sm text-muted-foreground">$29 per month</p>
+                  </div>
+                  <Button variant="outline">Upgrade</Button>
                 </div>
-                <div>
-                  <p className="font-medium">Visa ending in 4242</p>
-                  <p className="text-sm text-muted-foreground">Expires 12/2025</p>
+                <div className="mt-4 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-slate-600" />
+                    <span className="text-sm">Unlimited receipts</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-slate-600" />
+                    <span className="text-sm">All receipt templates</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-slate-600" />
+                    <span className="text-sm">Email & WhatsApp receipts</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-slate-600" />
+                    <span className="text-sm">CSV & PDF exports</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-slate-600" />
+                    <span className="text-sm">Advanced analytics</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-slate-600" />
+                    <span className="text-sm">Priority support</span>
+                  </div>
                 </div>
-                <Button variant="outline" size="sm" className="ml-auto">
-                  Update
-                </Button>
               </div>
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Billing History</CardTitle>
-              <CardDescription>View your recent invoices and payment history.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Invoice #INV-2024-0012</p>
-                    <p className="text-sm text-muted-foreground">May 1, 2024</p>
+              <div className="rounded-md border p-6 bg-slate-50">
+                <div className="flex items-center gap-4">
+                  <div className="rounded-full bg-slate-200 text-slate-700 p-3">
+                    <CreditCard className="h-6 w-6" />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">$59.00</span>
-                    <Button variant="outline" size="sm">
-                      <Download className="h-4 w-4" />
-                    </Button>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-medium">Enterprise Plan</h3>
+                    <p className="text-sm text-muted-foreground">Custom pricing</p>
                   </div>
+                  <Button variant="outline">Contact Sales</Button>
                 </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Invoice #INV-2024-0011</p>
-                    <p className="text-sm text-muted-foreground">April 1, 2024</p>
+                <div className="mt-4 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-slate-600" />
+                    <span className="text-sm">Everything in Professional</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">$59.00</span>
-                    <Button variant="outline" size="sm">
-                      <Download className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Invoice #INV-2024-0010</p>
-                    <p className="text-sm text-muted-foreground">March 1, 2024</p>
+                    <Check className="h-4 w-4 text-slate-600" />
+                    <span className="text-sm">Custom integrations</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">$59.00</span>
-                    <Button variant="outline" size="sm">
-                      <Download className="h-4 w-4" />
-                    </Button>
+                    <Check className="h-4 w-4 text-slate-600" />
+                    <span className="text-sm">Dedicated account manager</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-slate-600" />
+                    <span className="text-sm">SSO & advanced security</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-slate-600" />
+                    <span className="text-sm">Custom branding</span>
                   </div>
                 </div>
               </div>
