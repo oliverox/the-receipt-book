@@ -9,6 +9,7 @@ import { ArrowLeft, Eye, Plus, Trash, User, X } from "lucide-react"
 import { useMutation, useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
 import { Id } from "@/convex/_generated/dataModel"
+import { formatDate } from "@/lib/utils"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -71,9 +72,12 @@ export function NewReceiptClient() {
   }])
   const [selectedReceiptType, setSelectedReceiptType] = useState<ReceiptType | null>(null)
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("")
+  // Format the current date for the receipt date field
+  const formattedToday = new Date().toISOString().split("T")[0] // YYYY-MM-DD format for date input
+  
   const [formData, setFormData] = useState({
     contributorName: "",
-    receiptDate: new Date().toISOString().split("T")[0],
+    receiptDate: formattedToday,
     email: "",
     phone: "",
     address: "",

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { ArrowLeft, Download, Mail, Printer, Share2, Trash2 } from "lucide-react"
 import { useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
+import { formatDate } from "@/lib/utils"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -76,7 +77,7 @@ export function ReceiptDetailClient({ receiptId }: ReceiptDetailClientProps) {
   const formattedReceipt = {
     receiptNumber: receipt.receiptId,
     receiptType: receipt.receiptType.name,
-    date: new Date(receipt.date).toLocaleDateString(),
+    date: formatDate(receipt.date),
     recipient: {
       name: receipt.recipientName,
       email: receipt.recipientEmail || "",
@@ -136,7 +137,7 @@ export function ReceiptDetailClient({ receiptId }: ReceiptDetailClientProps) {
         </div>
       </DashboardHeader>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-1">
         <div className="space-y-6">
           <Card>
             <CardHeader>
@@ -286,15 +287,6 @@ export function ReceiptDetailClient({ receiptId }: ReceiptDetailClientProps) {
             </Dialog>
           </div>
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Receipt Preview</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ReceiptPreview receipt={formattedReceipt} />
-          </CardContent>
-        </Card>
       </div>
     </DashboardShell>
   )

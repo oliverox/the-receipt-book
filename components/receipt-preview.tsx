@@ -1,6 +1,7 @@
 "use client"
 
 import { FileText } from "lucide-react"
+import { formatDate } from "@/lib/utils"
 
 interface ReceiptProps {
   receipt: {
@@ -33,6 +34,7 @@ interface ReceiptProps {
 }
 
 export function ReceiptPreview({ receipt }: ReceiptProps) {
+  // Note: date formatting is handled by the parent component
   return (
     <div className="bg-white rounded-lg border shadow-sm p-6 max-w-full overflow-auto">
       <div className="flex justify-between items-start mb-6">

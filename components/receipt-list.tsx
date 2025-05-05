@@ -4,6 +4,7 @@ import Link from "next/link"
 import { MoreHorizontal } from "lucide-react"
 import { useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
+import { formatDate } from "@/lib/utils"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -58,7 +59,7 @@ export function ReceiptList({ receipts = [] }: ReceiptListProps) {
                   {receipt.receiptId}
                 </Link>
               </TableCell>
-              <TableCell>{new Date(receipt.date).toLocaleDateString()}</TableCell>
+              <TableCell>{formatDate(receipt.date)}</TableCell>
               <TableCell>{receipt.recipientName}</TableCell>
               <TableCell>{receipt.currency || currencySymbol} {receipt.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
               <TableCell>

@@ -7,6 +7,7 @@ import { ArrowLeft, Edit, Mail, Phone, UserPlus } from "lucide-react"
 import { useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
 import { Id } from "@/convex/_generated/dataModel"
+import { formatDate } from "@/lib/utils"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -152,7 +153,7 @@ export function ContactDetailClient({ contactId }: ContactDetailClientProps) {
               <p className="text-2xl font-bold">{currencySymbol}{contact.totalContributions.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
               {contact.lastReceiptDate && (
                 <p className="text-xs text-muted-foreground">
-                  Last receipt: {new Date(contact.lastReceiptDate).toLocaleDateString()}
+                  Last receipt: {formatDate(contact.lastReceiptDate)}
                 </p>
               )}
             </div>
@@ -207,7 +208,7 @@ export function ContactDetailClient({ contactId }: ContactDetailClientProps) {
                           {receipt.receiptId}
                         </Link>
                       </TableCell>
-                      <TableCell>{new Date(receipt.date).toLocaleDateString()}</TableCell>
+                      <TableCell>{formatDate(receipt.date)}</TableCell>
                       <TableCell>
                         {receipt.currency || currencySymbol}
                         {receipt.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}

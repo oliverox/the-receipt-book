@@ -9,13 +9,23 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
+import { formatDate } from "@/lib/utils"
 
-// Helper function to format timestamps
+// Helper function to format timestamps relatively
 const formatTimestamp = (timestamp: number) => {
   try {
     return formatDistanceToNow(new Date(timestamp), { addSuffix: true })
   } catch (e) {
     return "recently"
+  }
+}
+
+// Helper function to format timestamps absolutely
+const formatAbsoluteDate = (timestamp: number) => {
+  try {
+    return formatDate(timestamp)
+  } catch (e) {
+    return "unknown date"
   }
 }
 
