@@ -60,7 +60,7 @@ export function ReceiptList({ receipts = [] }: ReceiptListProps) {
               </TableCell>
               <TableCell>{new Date(receipt.date).toLocaleDateString()}</TableCell>
               <TableCell>{receipt.recipientName}</TableCell>
-              <TableCell>{receipt.currency || currencySymbol}{receipt.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+              <TableCell>{receipt.currency || currencySymbol} {receipt.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
               <TableCell>
                 <div className="flex items-center">
                   <div className={`h-2 w-2 rounded-full ${

@@ -15,8 +15,7 @@ import {
   Search, 
   BarChart3, 
   CreditCard,
-  Users,
-  Layers 
+  Users
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -38,7 +37,6 @@ export default function DashboardPage() {
     limit: 10 
   })
   
-  const fundCategories = useQuery(api.settings.listFundCategories)
   const orgSettings = useQuery(api.settings.getOrganizationSettings)
 
   // Handle user onboarding instead of redirecting
@@ -65,7 +63,6 @@ export default function DashboardPage() {
 
   const totalReceipts = recentReceipts?.receipts?.length || 0
   const totalAmount = recentReceipts?.receipts?.reduce((sum, receipt) => sum + receipt.totalAmount, 0) || 0
-  const categoriesCount = fundCategories?.length || 0
 
   return (
     <DashboardShell>
@@ -80,7 +77,7 @@ export default function DashboardPage() {
           </Button>
         </Link>
       </DashboardHeader>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Receipts</CardTitle>
@@ -98,8 +95,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {orgSettings.currencySettings?.symbol || "$"}
-              {totalAmount.toLocaleString()}
+              {orgSettings.currencySettings?.symbol || "$"} {totalAmount.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
               Total contributions ({orgSettings.currencySettings?.code || "USD"})
@@ -118,16 +114,6 @@ export default function DashboardPage() {
             <p className="text-xs text-muted-foreground">
               {userProfile?.organization?.subscriptionTier || "Starter"} plan
             </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Fund Categories</CardTitle>
-            <Layers className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{categoriesCount}</div>
-            <p className="text-xs text-muted-foreground">Active categories</p>
           </CardContent>
         </Card>
       </div>

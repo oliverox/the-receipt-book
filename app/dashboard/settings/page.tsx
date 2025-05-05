@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Check, CreditCard, FileText, Pencil, Upload, Plus, Download, CheckCircle } from "lucide-react"
+import { Check, CreditCard, FileText, Pencil, Upload, Plus, Download, CheckCircle, Percent } from "lucide-react"
 import { useUser } from "@clerk/nextjs"
 import { useQuery, useMutation } from "convex/react"
 import { api } from "@/convex/_generated/api"
@@ -48,6 +48,11 @@ export default function SettingsPage() {
   const [nextReceiptNumber, setNextReceiptNumber] = useState(1)
   const [receiptDigits, setReceiptDigits] = useState(4)
   const [receiptFooter, setReceiptFooter] = useState("Thank you for your contribution!")
+  
+  // Sales tax settings
+  const [taxEnabled, setTaxEnabled] = useState(false)
+  const [taxPercentage, setTaxPercentage] = useState(10)
+  const [taxName, setTaxName] = useState("Sales Tax")
   
   // Signature settings
   const [signatoryName, setSignatoryName] = useState("")
@@ -124,6 +129,13 @@ export default function SettingsPage() {
         }
         
         setCurrencySymbol(symbol);
+      }
+      
+      // Sales tax settings
+      if (orgSettings.salesTaxSettings) {
+        setTaxEnabled(orgSettings.salesTaxSettings.enabled || false);
+        setTaxPercentage(orgSettings.salesTaxSettings.percentage || 10);
+        setTaxName(orgSettings.salesTaxSettings.name || "Sales Tax");
       }
     }
   }, [userProfile, orgSettings, createDefaultSettings])
@@ -207,6 +219,11 @@ export default function SettingsPage() {
       // Update organization settings
       await updateOrgSettings({
         receiptNumberingFormat: formattedReceiptFormat,
+        salesTaxSettings: {
+          enabled: taxEnabled,
+          percentage: Number(taxPercentage),
+          name: taxName,
+        },
       })
       
       // Show success message
@@ -569,6 +586,60 @@ export default function SettingsPage() {
                   onChange={(e) => setReceiptFooter(e.target.value)}
                   disabled={isDataLoading || isLoading}
                 />
+              </div>
+              
+              <Separator className="my-4" />
+              
+              <div>
+                <h3 className="text-md font-medium flex items-center mb-2">
+                  <Percent className="h-4 w-4 mr-2 text-muted-foreground" />
+                  Sales Tax Settings
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Configure sales tax for sales receipts. This will be applied to all sales receipts when enabled.
+                </p>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="tax-enabled"
+                      checked={taxEnabled}
+                      onChange={(e) => setTaxEnabled(e.target.checked)}
+                      className="rounded border-gray-300"
+                      disabled={isDataLoading || isLoading}
+                    />
+                    <Label htmlFor="tax-enabled" className="font-medium">Enable Sales Tax</Label>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="tax-name">Tax Name</Label>
+                    <Input 
+                      id="tax-name" 
+                      value={taxName}
+                      onChange={(e) => setTaxName(e.target.value)}
+                      disabled={!taxEnabled || isDataLoading || isLoading}
+                      placeholder="e.g., Sales Tax, VAT, GST"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="tax-percentage">Tax Percentage (%)</Label>
+                    <Input 
+                      id="tax-percentage" 
+                      type="number" 
+                      min="0" 
+                      max="100" 
+                      step="0.01"
+                      value={taxPercentage}
+                      onChange={(e) => setTaxPercentage(parseFloat(e.target.value))}
+                      disabled={!taxEnabled || isDataLoading || isLoading}
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      This percentage will be applied to the subtotal of sales receipts.
+                    </p>
+                  </div>
+                </div>
               </div>
             </CardContent>
             <CardFooter>

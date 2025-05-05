@@ -5,8 +5,9 @@ import { FileText } from "lucide-react"
 interface ReceiptProps {
   receipt: {
     receiptNumber: string
+    receiptType: string
     date: string
-    contributor: {
+    recipient: {
       name: string
       email: string
       phone: string
@@ -14,9 +15,18 @@ interface ReceiptProps {
     }
     items: Array<{
       category: string
+      name?: string
+      quantity?: number
+      unitPrice?: number
       amount: number
     }>
     total: number
+    subtotal?: number
+    tax?: {
+      amount: number
+      percentage: number
+      name: string
+    }
     status: string
     notes?: string
   }
@@ -31,7 +41,7 @@ export function ReceiptPreview({ receipt }: ReceiptProps) {
           <span className="text-xl font-bold">ReceiptPro</span>
         </div>
         <div className="text-right">
-          <h2 className="text-lg font-bold text-emerald-600">RECEIPT</h2>
+          <h2 className="text-lg font-bold text-emerald-600">{receipt.receiptType.toUpperCase()} RECEIPT</h2>
           <p className="text-sm">{receipt.receiptNumber}</p>
           <p className="text-sm">{receipt.date}</p>
         </div>
@@ -47,34 +57,83 @@ export function ReceiptPreview({ receipt }: ReceiptProps) {
         </div>
         <div>
           <h3 className="text-sm font-medium text-muted-foreground mb-1">To</h3>
-          <p className="font-medium">{receipt.contributor.name}</p>
-          <p className="text-sm">{receipt.contributor.email}</p>
-          <p className="text-sm">{receipt.contributor.phone}</p>
-          <p className="text-sm text-muted-foreground">{receipt.contributor.address}</p>
+          <p className="font-medium">{receipt.recipient.name}</p>
+          <p className="text-sm">{receipt.recipient.email}</p>
+          <p className="text-sm">{receipt.recipient.phone}</p>
+          <p className="text-sm text-muted-foreground">{receipt.recipient.address}</p>
         </div>
       </div>
 
       <div className="mb-6">
-        <h3 className="text-sm font-medium text-muted-foreground mb-2">Fund Contributions</h3>
+        <h3 className="text-sm font-medium text-muted-foreground mb-2">
+          {receipt.receiptType === "Donation" 
+            ? "Fund Contributions" 
+            : receipt.receiptType === "Sales" 
+              ? "Items" 
+              : "Services"}
+        </h3>
         <div className="border rounded-md overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-slate-50">
               <tr>
-                <th className="px-4 py-2 text-left font-medium">Fund Category</th>
-                <th className="px-4 py-2 text-right font-medium">Amount</th>
+                {receipt.receiptType === "Sales" ? (
+                  <>
+                    <th className="px-4 py-2 text-left font-medium">Item</th>
+                    <th className="px-4 py-2 text-center font-medium">Qty</th>
+                    <th className="px-4 py-2 text-right font-medium">Unit Price</th>
+                    <th className="px-4 py-2 text-right font-medium">Amount</th>
+                  </>
+                ) : (
+                  <>
+                    <th className="px-4 py-2 text-left font-medium">Category</th>
+                    <th className="px-4 py-2 text-right font-medium">Amount</th>
+                  </>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y">
-              {receipt.items.map((item, index) => (
-                <tr key={index}>
-                  <td className="px-4 py-2">{item.category}</td>
-                  <td className="px-4 py-2 text-right">₹{item.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+              {receipt.receiptType === "Sales" ? (
+                // Sales receipt items display
+                receipt.items.map((item, index) => (
+                  <tr key={index}>
+                    <td className="px-4 py-2">{item.name || item.category}</td>
+                    <td className="px-4 py-2 text-center">{item.quantity || 1}</td>
+                    <td className="px-4 py-2 text-right">₹ {(item.unitPrice || (item.amount / (item.quantity || 1))).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td className="px-4 py-2 text-right">₹ {item.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  </tr>
+                ))
+              ) : (
+                // Donation or service receipt items display
+                receipt.items.map((item, index) => (
+                  <tr key={index}>
+                    <td className="px-4 py-2">{item.name || item.category}</td>
+                    <td className="px-4 py-2 text-right">₹ {item.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  </tr>
+                ))
+              )}
+              {receipt.receiptType === "Sales" && receipt.subtotal && receipt.tax ? (
+                // Sales receipt with tax
+                <>
+                  <tr className="font-medium">
+                    <td className="px-4 py-2" colSpan={3}>Subtotal</td>
+                    <td className="px-4 py-2 text-right">₹ {receipt.subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  </tr>
+                  <tr className="font-medium">
+                    <td className="px-4 py-2" colSpan={3}>{receipt.tax.name} ({receipt.tax.percentage}%)</td>
+                    <td className="px-4 py-2 text-right">₹ {receipt.tax.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  </tr>
+                  <tr className="bg-slate-50 font-medium">
+                    <td className="px-4 py-2" colSpan={3}>Total</td>
+                    <td className="px-4 py-2 text-right">₹ {receipt.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  </tr>
+                </>
+              ) : (
+                // Standard total row for non-sales receipts or sales without tax
+                <tr className="bg-slate-50 font-medium">
+                  <td className="px-4 py-2" colSpan={receipt.receiptType === "Sales" ? 3 : 1}>Total</td>
+                  <td className="px-4 py-2 text-right">₹ {receipt.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                 </tr>
-              ))}
-              <tr className="bg-slate-50 font-medium">
-                <td className="px-4 py-2">Total</td>
-                <td className="px-4 py-2 text-right">₹{receipt.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-              </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -90,7 +149,13 @@ export function ReceiptPreview({ receipt }: ReceiptProps) {
       <div className="mt-8 pt-6 border-t">
         <div className="flex justify-between items-end">
           <div>
-            <p className="text-sm text-center mb-1">Thank you for your contribution!</p>
+            <p className="text-sm text-center mb-1">
+              {receipt.receiptType === "Donation" 
+                ? "Thank you for your contribution!"
+                : receipt.receiptType === "Sales"
+                  ? "Thank you for your purchase!"
+                  : "Thank you for your business!"}
+            </p>
             <p className="text-xs text-muted-foreground">
               This is a computer-generated receipt and does not require a physical signature.
             </p>

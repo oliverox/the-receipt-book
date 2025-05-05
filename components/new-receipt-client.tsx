@@ -29,10 +29,13 @@ import {
 } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
-interface FundItem {
+interface ReceiptItem {
   id: string
   categoryId: string
   categoryName: string
+  name?: string
+  quantity?: string
+  unitPrice?: string
   amount: string
   searchQuery?: string
 }
@@ -49,24 +52,33 @@ interface Contact {
   }
 }
 
+interface ReceiptType {
+  _id: string
+  name: string
+  description?: string
+}
+
 export function NewReceiptClient() {
   const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
-  const [fundItems, setFundItems] = useState<FundItem[]>([{ 
+  const [receiptItems, setReceiptItems] = useState<ReceiptItem[]>([{ 
     id: "1", 
     categoryId: "", 
     categoryName: "", 
     amount: "",
     searchQuery: ""
   }])
+  const [selectedReceiptType, setSelectedReceiptType] = useState<ReceiptType | null>(null)
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("")
   const [formData, setFormData] = useState({
     contributorName: "",
     receiptDate: new Date().toISOString().split("T")[0],
     email: "",
     phone: "",
     address: "",
-    notes: ""
+    notes: "",
+    receiptTypeId: "" // Added receipt type ID
   })
   
   // Contact search and selection
@@ -76,6 +88,9 @@ export function NewReceiptClient() {
   
   // Fund category popover state
   const [openFundPopoverId, setOpenFundPopoverId] = useState<string | null>(null)
+  
+  // Per-receipt tax override
+  const [disableTaxForReceipt, setDisableTaxForReceipt] = useState(false)
 
   // Get contacts for autocomplete - only run when search query changes and is not empty
   const searchResults = useQuery(
@@ -86,22 +101,81 @@ export function NewReceiptClient() {
   // Get organization settings for currency
   const orgSettings = useQuery(api.settings.getOrganizationSettings)
   
-  // Get fund categories from the database
-  const fundCategories = useQuery(api.myFunctions.listFundCategories) || []
+  // Get receipt types from the database
+  const receiptTypes = useQuery(api.receiptTypes.listReceiptTypes) || []
   
-  // Get fund categories for autocomplete - we'll use a dynamic query based on which fund item is being edited
-  const fundCategorySearchResults = useQuery(
-    api.myFunctions.searchFundCategories,
-    fundItems.some(item => item.searchQuery && item.searchQuery.length > 1 && item.id === openFundPopoverId)
+  // Initialize receipt types if none exist
+  const initializeReceiptTypes = useMutation(api.receiptTypes.initializeDefaultReceiptTypes)
+  
+  // Check if we need to initialize receipt types
+  useEffect(() => {
+    if (receiptTypes.length === 0) {
+      // Initialize default receipt types
+      initializeReceiptTypes()
+        .catch(error => {
+          console.error("Failed to initialize receipt types:", error)
+        })
+    }
+  }, [receiptTypes.length, initializeReceiptTypes])
+  
+  // Get item categories based on selected receipt type
+  const itemCategories = useQuery(
+    api.itemCategories.listItemCategories,
+    selectedReceiptType ? { receiptTypeId: selectedReceiptType._id as Id<"receiptTypes"> } : "skip"
+  ) || []
+  
+  // Initialize item categories mutation
+  const initializeItemCategories = useMutation(api.itemCategories.initializeItemCategories)
+  
+  // Initialize item categories if none exist and we have a receipt type
+  useEffect(() => {
+    if (itemCategories.length === 0 && selectedReceiptType) {
+      // Initialize item categories
+      initializeItemCategories({
+        receiptTypeId: selectedReceiptType._id as Id<"receiptTypes">
+      }).catch(error => {
+        console.error("Failed to initialize item categories:", error)
+      })
+    }
+  }, [itemCategories.length, selectedReceiptType, initializeItemCategories])
+  
+  // Get templates for the selected receipt type
+  const receiptTemplates = useQuery(
+    api.templates.listTemplatesByType,
+    selectedReceiptType ? { receiptTypeId: selectedReceiptType._id as Id<"receiptTypes"> } : "skip"
+  ) || []
+  
+  // Initialize templates mutation
+  const initializeTemplates = useMutation(api.templates.initializeDefaultTemplates)
+  
+  // Initialize templates if none exist and we have receipt types
+  useEffect(() => {
+    if (receiptTemplates.length === 0 && selectedReceiptType) {
+      // Initialize templates
+      initializeTemplates()
+        .catch(error => {
+          console.error("Failed to initialize templates:", error)
+        })
+    }
+  }, [receiptTemplates.length, selectedReceiptType, initializeTemplates])
+  
+  // Get item categories for autocomplete
+  const itemCategorySearchResults = useQuery(
+    api.itemCategories.searchItemCategories,
+    receiptItems.some(item => item.searchQuery && item.searchQuery.length > 1 && item.id === openFundPopoverId) && selectedReceiptType
       ? { 
-          search: fundItems.find(item => item.id === openFundPopoverId)?.searchQuery || "", 
+          receiptTypeId: selectedReceiptType._id as Id<"receiptTypes">,
+          search: receiptItems.find(item => item.id === openFundPopoverId)?.searchQuery || "", 
           limit: 5 
         }
       : "skip"
   ) || []
   
-  // Create fund category mutation
-  const createFundCategory = useMutation(api.myFunctions.createFundCategory)
+  // Create item category mutation
+  const createItemCategory = useMutation(api.itemCategories.createItemCategory)
+  
+  // Create receipt type mutation
+  const createReceiptType = useMutation(api.receiptTypes.createReceiptType)
   
   // Default currency symbol and code
   const currencySymbol = orgSettings?.currencySettings?.symbol || "$"
@@ -129,23 +203,29 @@ export function NewReceiptClient() {
     // Keep the form data as is
   }
 
-  const addFundItem = () => {
-    const newId = String(fundItems.length + 1)
-    setFundItems([...fundItems, { id: newId, categoryId: "", categoryName: "", amount: "", searchQuery: "" }])
+  const addReceiptItem = () => {
+    const newId = String(receiptItems.length + 1)
+    setReceiptItems([...receiptItems, { 
+      id: newId, 
+      categoryId: "", 
+      categoryName: "", 
+      amount: "", 
+      searchQuery: "" 
+    }])
   }
 
-  const removeFundItem = (id: string) => {
-    if (fundItems.length > 1) {
-      setFundItems(fundItems.filter((item) => item.id !== id))
+  const removeReceiptItem = (id: string) => {
+    if (receiptItems.length > 1) {
+      setReceiptItems(receiptItems.filter((item) => item.id !== id))
     }
   }
 
-  const updateFundItem = (id: string, field: keyof FundItem, value: string) => {
-    setFundItems(fundItems.map((item) => {
+  const updateReceiptItem = (id: string, field: keyof ReceiptItem, value: string) => {
+    setReceiptItems(receiptItems.map((item) => {
       if (item.id === id) {
         if (field === "categoryId") {
           // Find the category name when the ID is selected
-          const selectedCategory = fundCategories?.find(cat => cat._id === value)
+          const selectedCategory = itemCategories?.find(cat => cat._id === value)
           return { 
             ...item, 
             categoryId: value,
@@ -155,47 +235,105 @@ export function NewReceiptClient() {
         if (field === "searchQuery") {
           return { ...item, searchQuery: value, categoryName: value }
         }
+        if (field === "quantity" || field === "unitPrice") {
+          // Recalculate amount when quantity or unit price changes
+          const quantity = field === "quantity" ? parseFloat(value) || 0 : parseFloat(item.quantity || "0")
+          const unitPrice = field === "unitPrice" ? parseFloat(value) || 0 : parseFloat(item.unitPrice || "0")
+          return { 
+            ...item, 
+            [field]: value,
+            amount: (quantity * unitPrice).toFixed(2)
+          }
+        }
         return { ...item, [field]: value }
       }
       return item
     }))
   }
   
-  // Select a fund category from the autocomplete
-  const selectFundCategory = async (id: string, category: { _id: string, name: string }) => {
-    updateFundItem(id, "categoryId", category._id)
-    updateFundItem(id, "categoryName", category.name)
+  // Select a item category from the autocomplete
+  const selectItemCategory = async (id: string, category: { _id: string, name: string }) => {
+    updateReceiptItem(id, "categoryId", category._id)
+    updateReceiptItem(id, "categoryName", category.name)
     setOpenFundPopoverId(null)
   }
   
-  // Create a new fund category if it doesn't exist
-  const handleCreateFundCategory = async (id: string) => {
-    const item = fundItems.find(item => item.id === id)
+  // Create a new item category if it doesn't exist
+  const handleCreateItemCategory = async (id: string) => {
+    if (!selectedReceiptType) {
+      toast({
+        title: "Error creating category",
+        description: "Please select a receipt type first",
+        variant: "destructive"
+      })
+      return
+    }
+
+    const item = receiptItems.find(item => item.id === id)
     if (!item || !item.categoryName) return
     
     try {
-      const fundCategoryId = await createFundCategory({
+      const itemCategoryId = await createItemCategory({
         name: item.categoryName,
-        description: `Created automatically when adding fund category to receipt`
+        description: `Created automatically when adding item category to receipt`,
+        receiptTypeId: selectedReceiptType._id as Id<"receiptTypes">
       })
       
-      if (fundCategoryId) {
-        updateFundItem(id, "categoryId", fundCategoryId)
+      if (itemCategoryId) {
+        updateReceiptItem(id, "categoryId", itemCategoryId)
         setOpenFundPopoverId(null)
         
         toast({
-          title: "Fund category created",
-          description: `Created new fund category: ${item.categoryName}`,
+          title: "Item category created",
+          description: `Created new item category: ${item.categoryName}`,
         })
       }
     } catch (error: any) {
       toast({
-        title: "Error creating fund category",
+        title: "Error creating item category",
         description: error.message || "Something went wrong",
         variant: "destructive"
       })
     }
   }
+  
+  // Handle receipt type selection
+  const handleReceiptTypeChange = (receiptTypeId: string) => {
+    const receiptType = receiptTypes.find(type => type._id === receiptTypeId)
+    if (receiptType) {
+      setSelectedReceiptType(receiptType)
+      setFormData({
+        ...formData,
+        receiptTypeId: receiptTypeId
+      })
+      
+      // Reset receipt items when type changes
+      setReceiptItems([{ 
+        id: "1", 
+        categoryId: "", 
+        categoryName: "", 
+        amount: "",
+        searchQuery: "" 
+      }])
+      
+      // Reset template selection - we'll set it when templates load
+      setSelectedTemplateId("")
+    }
+  }
+  
+  // Select default template when templates load
+  useEffect(() => {
+    if (receiptTemplates.length > 0 && !selectedTemplateId) {
+      // Find the default template
+      const defaultTemplate = receiptTemplates.find(template => template.isDefault)
+      if (defaultTemplate) {
+        setSelectedTemplateId(defaultTemplate._id)
+      } else if (receiptTemplates[0]) {
+        // Otherwise use the first template
+        setSelectedTemplateId(receiptTemplates[0]._id)
+      }
+    }
+  }, [receiptTemplates, selectedTemplateId])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target
@@ -210,13 +348,47 @@ export function NewReceiptClient() {
     }
   }
 
-  // Calculate raw total (for API)
-  const calculateRawTotal = () => {
-    return fundItems
+  // Calculate subtotal (sum of all items)
+  const calculateSubtotal = () => {
+    return receiptItems
       .reduce((sum, item) => {
         const amount = Number.parseFloat(item.amount) || 0
         return sum + amount
       }, 0)
+  }
+
+  // Calculate tax amount for sales receipts if tax is enabled and not overridden
+  const calculateTaxAmount = () => {
+    // No tax if not a sales receipt, if tax is disabled globally, or if tax is disabled for this receipt
+    if (
+      selectedReceiptType?.name !== "Sales" || 
+      !orgSettings?.salesTaxSettings?.enabled ||
+      disableTaxForReceipt
+    ) {
+      return 0;
+    }
+    
+    const subtotal = calculateSubtotal();
+    const taxPercentage = orgSettings.salesTaxSettings.percentage || 0;
+    
+    // Round to 2 decimal places
+    return Math.round(subtotal * (taxPercentage / 100) * 100) / 100;
+  }
+  
+  // Calculate raw total (for API) including tax for sales receipts
+  const calculateRawTotal = () => {
+    const subtotal = calculateSubtotal();
+    
+    // For sales receipts with tax enabled and not overridden, add tax amount
+    if (
+      selectedReceiptType?.name === "Sales" && 
+      orgSettings?.salesTaxSettings?.enabled &&
+      !disableTaxForReceipt
+    ) {
+      return subtotal + calculateTaxAmount();
+    }
+    
+    return subtotal;
   }
   
   // Format total for display with commas
@@ -239,36 +411,44 @@ export function NewReceiptClient() {
       if (!formData.contributorName) {
         throw new Error("Contributor name is required")
       }
-
-      // Validate fund items
-      const invalidItems = fundItems.filter(item => (!item.categoryId && !item.categoryName) || !item.amount)
-      if (invalidItems.length > 0) {
-        throw new Error("All fund categories and amounts are required")
+      
+      // Validate receipt type
+      if (!selectedReceiptType) {
+        throw new Error("Receipt type is required")
       }
       
-      // Create any new fund categories if needed
-      for (const item of fundItems) {
+      // Validate template selection
+      if (!selectedTemplateId) {
+        throw new Error("Receipt template is required")
+      }
+
+      // Validate receipt items
+      const invalidItems = receiptItems.filter(item => (!item.categoryId && !item.categoryName) || !item.amount)
+      if (invalidItems.length > 0) {
+        throw new Error("All item categories and amounts are required")
+      }
+      
+      // Create any new item categories if needed
+      for (const item of receiptItems) {
         if (item.categoryName && !item.categoryId) {
           try {
-            const categoryId = await createFundCategory({
+            const categoryId = await createItemCategory({
               name: item.categoryName,
-              description: `Created automatically when creating receipt`
+              description: `Created automatically when creating receipt`,
+              receiptTypeId: selectedReceiptType._id as Id<"receiptTypes">
             })
             item.categoryId = categoryId
           } catch (error: any) {
-            console.error("Error creating fund category:", error)
-            throw new Error(`Failed to create fund category: ${item.categoryName}`)
+            console.error("Error creating item category:", error)
+            throw new Error(`Failed to create item category: ${item.categoryName}`)
           }
         }
       }
 
-      // Get a valid template ID or use a default one
-      // In a real app, you would have a proper template selection UI
-      let templateId: Id<"receiptTemplates"> = "defaultTemplateId" as unknown as Id<"receiptTemplates">
-      
       // Prepare data for API call
-      const receiptData = {
-        templateId,
+      const receiptData: any = {
+        templateId: selectedTemplateId as Id<"receiptTemplates">,
+        receiptTypeId: selectedReceiptType._id as Id<"receiptTypes">,
         recipientName: formData.contributorName,
         recipientEmail: formData.email || undefined,
         recipientPhone: formData.phone || undefined,
@@ -277,19 +457,36 @@ export function NewReceiptClient() {
         currency: currencyCode,
         date: new Date(formData.receiptDate).getTime(),
         notes: formData.notes || undefined,
-        contributions: fundItems.map(item => ({
-          fundCategoryId: item.categoryId as unknown as Id<"fundCategories">,
+        items: receiptItems.map(item => ({
+          itemCategoryId: item.categoryId as unknown as Id<"itemCategories">,
+          name: item.name,
+          quantity: item.quantity ? parseFloat(item.quantity) : undefined,
+          unitPrice: item.unitPrice ? parseFloat(item.unitPrice) : undefined,
           amount: parseFloat(item.amount),
-          description: undefined,
-          categoryName: item.categoryName // Send name in case we need it for display
+          description: undefined
         }))
+      }
+      
+      // Add tax information for sales receipts with tax enabled
+      if (selectedReceiptType.name === "Sales" && orgSettings?.salesTaxSettings?.enabled) {
+        receiptData.subtotalAmount = calculateSubtotal();
+        
+        // Include the tax disable flag
+        receiptData.taxDisabled = disableTaxForReceipt;
+        
+        // If tax is disabled for this receipt, set tax amount to 0
+        if (disableTaxForReceipt) {
+          receiptData.taxAmount = 0;
+        } else {
+          receiptData.taxAmount = calculateTaxAmount();
+          receiptData.taxPercentage = orgSettings.salesTaxSettings.percentage;
+          receiptData.taxName = orgSettings.salesTaxSettings.name;
+        }
       }
 
       // Call the API to create the receipt
-      // In a real implementation, this would be uncommented
-      // const result = await createReceipt(receiptData)
+      const result = await createReceipt(receiptData)
 
-      // For now, simulate success
       toast({
         title: "Receipt created",
         description: "The receipt has been created successfully.",
@@ -328,16 +525,65 @@ export function NewReceiptClient() {
         <Card>
           <CardContent className="pt-6">
             <div className="space-y-4">
+              {/* Receipt Type Selection */}
+              <div className="space-y-2">
+                <Label htmlFor="receiptType">Receipt Type</Label>
+                <Select 
+                  onValueChange={handleReceiptTypeChange} 
+                  value={selectedReceiptType?._id || ""}
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select receipt type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {receiptTypes.map((type) => (
+                      <SelectItem key={type._id} value={type._id}>
+                        {type.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedReceiptType?.description && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {selectedReceiptType.description}
+                  </p>
+                )}
+              </div>
+              
+              {/* Template selection - only show when receipt type is selected */}
+              {selectedReceiptType && (
+                <div className="space-y-2">
+                  <Label htmlFor="templateId">Receipt Template</Label>
+                  <Select 
+                    onValueChange={setSelectedTemplateId} 
+                    value={selectedTemplateId}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select receipt template" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {receiptTemplates.map((template) => (
+                        <SelectItem key={template._id} value={template._id}>
+                          {template.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="contributorName">Contributor</Label>
+                  <Label htmlFor="contributorName">Recipient</Label>
                   <div className="relative">
                     <Popover open={isContactPopoverOpen} onOpenChange={setIsContactPopoverOpen}>
                       <PopoverTrigger asChild>
                         <div className="flex items-center">
                           <Input 
                             id="contributorName" 
-                            placeholder="Search existing or enter new contributor" 
+                            placeholder="Search existing or enter new recipient" 
                             required 
                             value={formData.contributorName}
                             onChange={(e) => {
@@ -450,23 +696,39 @@ export function NewReceiptClient() {
 
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium">Fund Contributions</h3>
+                  <h3 className="text-lg font-medium">
+                    {selectedReceiptType?.name === "Donation" 
+                      ? "Fund Contributions" 
+                      : selectedReceiptType?.name === "Sales" 
+                        ? "Items" 
+                        : "Services"}
+                  </h3>
                 </div>
 
                 <div className="space-y-4">
-                  {/* Headers for fund items - displayed only once */}
+                  {/* Headers for receipt items - displayed only once */}
                   <div className="flex gap-4 px-1">
                     <div className="flex-1">
-                      <Label>Fund Category</Label>
+                      <Label>Category</Label>
                     </div>
+                    {selectedReceiptType?.name === "Sales" && (
+                      <>
+                        <div className="w-24">
+                          <Label>Qty</Label>
+                        </div>
+                        <div className="w-24">
+                          <Label>Unit Price</Label>
+                        </div>
+                      </>
+                    )}
                     <div className="w-1/3">
                       <Label>Amount ({currencySymbol})</Label>
                     </div>
                     <div className="w-10"></div> {/* Space for remove button */}
                   </div>
                   
-                  {/* Fund items */}
-                  {fundItems.map((item) => (
+                  {/* Receipt items */}
+                  {receiptItems.map((item) => (
                     <div key={item.id} className="flex items-center gap-4">
                       <div className="flex-1">
                         <Popover 
@@ -478,7 +740,7 @@ export function NewReceiptClient() {
                               setOpenFundPopoverId(null)
                               // If we have text but no category ID, try to create a new category
                               if (item.categoryName && !item.categoryId) {
-                                handleCreateFundCategory(item.id)
+                                handleCreateItemCategory(item.id)
                               }
                             }
                           }}
@@ -486,20 +748,21 @@ export function NewReceiptClient() {
                           <PopoverTrigger asChild>
                             <div className="relative">
                               <Input 
-                                id={`fund-category-${item.id}`}
-                                placeholder="Start typing a fund category..."
+                                id={`item-category-${item.id}`}
+                                placeholder={`Enter ${selectedReceiptType?.name === "Donation" ? "fund" : selectedReceiptType?.name === "Sales" ? "product" : "service"} category...`}
                                 value={item.categoryName}
+                                disabled={!selectedReceiptType}
                                 onChange={(e) => {
-                                  updateFundItem(item.id, "searchQuery", e.target.value)
-                                  updateFundItem(item.id, "categoryName", e.target.value)
-                                  if (e.target.value.length > 1) {
+                                  updateReceiptItem(item.id, "searchQuery", e.target.value)
+                                  updateReceiptItem(item.id, "categoryName", e.target.value)
+                                  if (e.target.value.length > 1 && selectedReceiptType) {
                                     setOpenFundPopoverId(item.id)
                                   } else {
                                     setOpenFundPopoverId(null)
                                   }
                                   // Clear the category ID if the name is changed
                                   if (item.categoryId) {
-                                    updateFundItem(item.id, "categoryId", "")
+                                    updateReceiptItem(item.id, "categoryId", "")
                                   }
                                 }}
                               />
@@ -508,16 +771,16 @@ export function NewReceiptClient() {
                           <PopoverContent className="p-0" align="start" side="bottom" sideOffset={5}>
                             <Command>
                               <CommandInput 
-                                placeholder="Search fund categories..." 
+                                placeholder="Search categories..." 
                                 value={item.searchQuery || ""}
                                 onValueChange={(value) => {
-                                  updateFundItem(item.id, "searchQuery", value)
+                                  updateReceiptItem(item.id, "searchQuery", value)
                                 }}
                               />
                               <CommandList>
                                 <CommandEmpty>
                                   <div className="px-2 py-3 text-center text-sm">
-                                    <p>No fund categories found.</p>
+                                    <p>No categories found.</p>
                                     <p className="text-xs text-muted-foreground mt-1">
                                       Press enter to create "{item.categoryName}"
                                     </p>
@@ -525,18 +788,18 @@ export function NewReceiptClient() {
                                       variant="outline"
                                       size="sm"
                                       className="mt-2 w-full"
-                                      onClick={() => handleCreateFundCategory(item.id)}
+                                      onClick={() => handleCreateItemCategory(item.id)}
                                     >
                                       Create "{item.categoryName}"
                                     </Button>
                                   </div>
                                 </CommandEmpty>
-                                <CommandGroup heading="Fund Categories">
-                                  {fundCategorySearchResults.map((category) => (
+                                <CommandGroup heading="Categories">
+                                  {itemCategorySearchResults.map((category) => (
                                     <CommandItem
                                       key={category._id}
                                       value={category.name}
-                                      onSelect={() => selectFundCategory(item.id, category)}
+                                      onSelect={() => selectItemCategory(item.id, category)}
                                     >
                                       <div className="flex flex-col">
                                         <span className="font-medium">{category.name}</span>
@@ -554,15 +817,45 @@ export function NewReceiptClient() {
                           </PopoverContent>
                         </Popover>
                       </div>
+
+                      {/* Only show quantity and unit price for Sales receipts */}
+                      {selectedReceiptType?.name === "Sales" && (
+                        <>
+                          <div className="w-24">
+                            <Input
+                              placeholder="Qty"
+                              value={item.quantity || ""}
+                              onChange={(e) => updateReceiptItem(item.id, "quantity", e.target.value)}
+                              type="number"
+                              min="1"
+                              step="1"
+                            />
+                          </div>
+                          <div className="w-24">
+                            <Input
+                              placeholder="Price"
+                              value={item.unitPrice || ""}
+                              onChange={(e) => updateReceiptItem(item.id, "unitPrice", e.target.value)}
+                              type="number"
+                              min="0"
+                              step="0.01"
+                            />
+                          </div>
+                        </>
+                      )}
+
                       <div className="w-1/3">
                         <Input
-                          id={`fund-amount-${item.id}`}
                           placeholder="0.00"
                           value={item.amount}
-                          onChange={(e) => updateFundItem(item.id, "amount", e.target.value)}
+                          onChange={(e) => updateReceiptItem(item.id, "amount", e.target.value)}
                           type="number"
                           min="0"
                           step="0.01"
+                          // Read-only if this is a sales receipt and quantity/unit price are used
+                          readOnly={selectedReceiptType?.name === "Sales" && 
+                                   !!item.quantity && 
+                                   !!item.unitPrice}
                         />
                       </div>
                       <div>
@@ -570,30 +863,86 @@ export function NewReceiptClient() {
                           type="button"
                           variant="ghost"
                           size="icon"
-                          onClick={() => removeFundItem(item.id)}
-                          disabled={fundItems.length === 1}
+                          onClick={() => removeReceiptItem(item.id)}
+                          disabled={receiptItems.length === 1}
                           className="h-10 w-10"
                         >
                           <Trash className="h-4 w-4" />
-                          <span className="sr-only">Remove fund item</span>
+                          <span className="sr-only">Remove item</span>
                         </Button>
                       </div>
                     </div>
                   ))}
 
-                  <Button type="button" variant="outline" size="sm" onClick={addFundItem} className="mt-2">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={addReceiptItem} 
+                    className="mt-2"
+                    disabled={!selectedReceiptType}
+                  >
                     <Plus className="mr-2 h-4 w-4" />
-                    Add Another Fund
+                    Add Another {selectedReceiptType?.name === "Donation" 
+                      ? "Fund" 
+                      : selectedReceiptType?.name === "Sales" 
+                        ? "Item" 
+                        : "Service"}
                   </Button>
                 </div>
               </div>
 
               <Separator className="my-4" />
 
-              <div className="flex justify-between items-center">
-                <div className="text-lg font-medium">Total Amount</div>
-                <div className="text-xl font-bold">{currencySymbol}{formatTotal()}</div>
-              </div>
+              {/* Show subtotal and tax for sales receipts with tax enabled */}
+              {selectedReceiptType?.name === "Sales" && orgSettings?.salesTaxSettings?.enabled ? (
+                <div className="space-y-4">
+                  {/* Tax Override Checkbox */}
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="disable-tax"
+                      checked={disableTaxForReceipt}
+                      onChange={(e) => setDisableTaxForReceipt(e.target.checked)}
+                      className="rounded border-gray-300"
+                    />
+                    <Label 
+                      htmlFor="disable-tax" 
+                      className="font-medium cursor-pointer"
+                    >
+                      Disable {orgSettings.salesTaxSettings.name} for this receipt
+                    </Label>
+                  </div>
+                  
+                  {/* Only show tax breakdown if tax is not disabled for this receipt */}
+                  {!disableTaxForReceipt ? (
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <div className="text-lg">Subtotal</div>
+                        <div className="text-lg">{currencySymbol} {calculateSubtotal().toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <div className="text-lg">{orgSettings.salesTaxSettings.name} ({orgSettings.salesTaxSettings.percentage}%)</div>
+                        <div className="text-lg">{currencySymbol} {calculateTaxAmount().toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                      </div>
+                      <div className="flex justify-between items-center pt-2 border-t">
+                        <div className="text-lg font-medium">Total Amount</div>
+                        <div className="text-xl font-bold">{currencySymbol} {formatTotal()}</div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between items-center">
+                      <div className="text-lg font-medium">Total Amount (No Tax)</div>
+                      <div className="text-xl font-bold">{currencySymbol} {formatTotal()}</div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex justify-between items-center">
+                  <div className="text-lg font-medium">Total Amount</div>
+                  <div className="text-xl font-bold">{currencySymbol} {formatTotal()}</div>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="notes">Notes (Optional)</Label>
