@@ -2,7 +2,7 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { DashboardShell } from "@/components/dashboard-shell"
 
@@ -13,7 +13,7 @@ export default function Loading() {
         heading="Loading Receipt..."
         text="Please wait while we load the receipt details."
       >
-        <Link href="/dashboard/receipts">
+        <Link href="/receipts">
           <Button variant="outline">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Receipts

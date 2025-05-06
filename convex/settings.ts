@@ -29,6 +29,13 @@ export const getOrganizationSettings = query({
         symbol: v.string(),
       })
     ),
+    salesTaxSettings: v.optional(
+      v.object({
+        enabled: v.boolean(),
+        percentage: v.number(),
+        name: v.string(),
+      })
+    ),
     whatsappIntegration: v.optional(
       v.object({
         enabled: v.boolean(),
@@ -74,6 +81,7 @@ export const getOrganizationSettings = query({
       emailSettings: settings.emailSettings,
       contactInfo: settings.contactInfo,
       currencySettings: settings.currencySettings,
+      salesTaxSettings: settings.salesTaxSettings,
       whatsappIntegration: settings.whatsappIntegration,
       receiptNumberingFormat: settings.receiptNumberingFormat,
     };
@@ -138,6 +146,11 @@ export const createDefaultSettings = mutation({
         code: "USD",
         symbol: "$"
       },
+      salesTaxSettings: {
+        enabled: false,
+        percentage: 10.0,
+        name: "Sales Tax"
+      },
       receiptNumberingFormat: "{PREFIX}-{YEAR}-{NUMBER}",
       updatedBy: user._id,
       updatedAt: Date.now(),
@@ -173,6 +186,13 @@ export const updateOrganizationSettings = mutation({
       v.object({
         code: v.string(),
         symbol: v.string(),
+      })
+    ),
+    salesTaxSettings: v.optional(
+      v.object({
+        enabled: v.boolean(),
+        percentage: v.number(),
+        name: v.string(),
       })
     ),
     whatsappIntegration: v.optional(
@@ -234,6 +254,11 @@ export const updateOrganizationSettings = mutation({
           code: "USD",
           symbol: "$",
         },
+        salesTaxSettings: args.salesTaxSettings || {
+          enabled: false,
+          percentage: 10.0,
+          name: "Sales Tax",
+        },
         receiptNumberingFormat: args.receiptNumberingFormat || "{PREFIX}-{YEAR}-{NUMBER}",
         whatsappIntegration: args.whatsappIntegration,
         updatedBy: user._id,
@@ -271,6 +296,10 @@ export const updateOrganizationSettings = mutation({
 
     if (args.currencySettings) {
       updates.currencySettings = args.currencySettings;
+    }
+
+    if (args.salesTaxSettings) {
+      updates.salesTaxSettings = args.salesTaxSettings;
     }
 
     if (args.whatsappIntegration) {

@@ -19,10 +19,12 @@ export default defineSchema({
     name: v.string(),
     email: v.string(),
     organizationId: v.id("organizations"),
-    role: v.string(), // "admin", "member", etc.
+    role: v.string(), // "admin" or "member"
+    title: v.optional(v.string()), // Optional job title like "Treasurer", "Cashier", etc.
     permissions: v.array(v.string()), // Array of permission strings
     active: v.boolean(),
     lastLogin: v.optional(v.number()), // Timestamp
+    status: v.optional(v.string()), // "Active", "Invited", etc.
   })
     .index("by_clerk_id", ["clerkId"])
     .index("by_email", ["email"])
@@ -77,12 +79,15 @@ export default defineSchema({
   receiptTemplates: defineTable({
     name: v.string(),
     organizationId: v.id("organizations"),
+    receiptTypeId: v.id("receiptTypes"), // Link to receipt type
     content: v.string(), // JSON or HTML template structure
     isDefault: v.boolean(),
     createdBy: v.id("users"),
     createdAt: v.number(), // Timestamp
     updatedAt: v.number(), // Timestamp
-  }).index("by_organization", ["organizationId"]),
+  })
+    .index("by_organization", ["organizationId"])
+    .index("by_receipt_type", ["organizationId", "receiptTypeId"]),
 
   // Organization settings
   organizationSettings: defineTable({
@@ -101,6 +106,11 @@ export default defineSchema({
       code: v.string(), // Currency code, e.g., "USD", "EUR", "GBP"
       symbol: v.string(), // Currency symbol, e.g., "$", "€", "£"
     })),
+    salesTaxSettings: v.optional(v.object({
+      enabled: v.boolean(),
+      percentage: v.number(),
+      name: v.string(), // e.g., "VAT", "GST", "Sales Tax"
+    })),
     whatsappIntegration: v.optional(v.object({
       enabled: v.boolean(),
       apiKey: v.string(),
@@ -110,17 +120,36 @@ export default defineSchema({
     updatedAt: v.number(), // Timestamp
   }).index("by_organization", ["organizationId"]),
 
+  // Receipt types - define different types of receipts
+  receiptTypes: defineTable({
+    name: v.string(), // E.g., "Donation", "Sales", "Service", etc.
+    description: v.optional(v.string()),
+    organizationId: v.id("organizations"),
+    isDefault: v.boolean(), // System-provided defaults vs user-created
+    active: v.boolean(),
+    createdBy: v.id("users"),
+    createdAt: v.number(), // Timestamp
+  })
+    .index("by_organization", ["organizationId"])
+    .index("by_name_and_org", ["name", "organizationId"]),
+
   // Receipts - the core entity being managed
   receipts: defineTable({
     receiptId: v.string(), // Custom formatted ID (e.g., "ORG-2023-001")
     organizationId: v.id("organizations"),
     createdBy: v.id("users"),
     templateId: v.id("receiptTemplates"),
+    receiptTypeId: v.id("receiptTypes"), // Link to receipt type
     recipientName: v.string(),
     recipientEmail: v.optional(v.string()),
     recipientPhone: v.optional(v.string()), // For WhatsApp
     contactId: v.optional(v.id("contacts")), // Link to contact in contacts list
     totalAmount: v.number(),
+    subtotalAmount: v.optional(v.number()), // Subtotal before tax for sales receipts
+    taxAmount: v.optional(v.number()), // Tax amount for sales receipts
+    taxPercentage: v.optional(v.number()), // Tax percentage used for this receipt
+    taxName: v.optional(v.string()), // Name of the tax (e.g., "VAT", "GST")
+    taxDisabled: v.optional(v.boolean()), // Flag to indicate if tax is disabled for this receipt
     currency: v.string(), // "USD", "EUR", etc.
     date: v.number(), // Timestamp
     status: v.string(), // "draft", "sent", "viewed", etc.
@@ -134,13 +163,30 @@ export default defineSchema({
     .index("by_recipient_email", ["recipientEmail"])
     .index("by_contact", ["contactId", "organizationId"])
     .index("by_status", ["organizationId", "status"])
-    .index("by_date", ["organizationId", "date"]),
+    .index("by_date", ["organizationId", "date"])
+    .index("by_receipt_type", ["organizationId", "receiptTypeId"]),
 
-  // Receipt contributions - line items for each receipt
-  receiptContributions: defineTable({
+  // Item categories - generic categories for receipt items (renamed from fund categories)
+  itemCategories: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    organizationId: v.id("organizations"),
+    receiptTypeId: v.id("receiptTypes"), // Associated with a receipt type
+    active: v.boolean(),
+    createdBy: v.id("users"),
+    createdAt: v.number(), // Timestamp
+  })
+    .index("by_organization", ["organizationId"])
+    .index("by_receipt_type", ["organizationId", "receiptTypeId"]),
+
+  // Receipt items - line items for each receipt (renamed from contributions)
+  receiptItems: defineTable({
     receiptId: v.id("receipts"),
-    fundCategoryId: v.id("fundCategories"),
-    amount: v.number(),
+    itemCategoryId: v.id("itemCategories"),
+    name: v.optional(v.string()), // Item name or description
+    quantity: v.optional(v.number()), // Quantity for sales receipts
+    unitPrice: v.optional(v.number()), // Unit price for sales receipts
+    amount: v.number(), // Total amount (quantity * unitPrice for sales, or contribution amount for donations)
     description: v.optional(v.string()),
   }).index("by_receipt", ["receiptId"]),
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, X } from "lucide-react"
@@ -134,14 +134,15 @@ export function NewContactClient() {
           title: "Contact created",
           description: "The contact has been created successfully."
         })
-        router.push("/dashboard/contacts")
+        router.push("/contacts")
       } else {
         throw new Error("Failed to create contact")
       }
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Something went wrong";
       toast({
         title: "Error creating contact",
-        description: error.message || "Something went wrong",
+        description: errorMessage,
         variant: "destructive"
       })
       setIsLoading(false)
@@ -151,7 +152,7 @@ export function NewContactClient() {
   return (
     <DashboardShell>
       <DashboardHeader heading="New Contact" text="Create a new contact entry for your organization.">
-        <Link href="/dashboard/contacts">
+        <Link href="/contacts">
           <Button variant="outline">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Cancel
@@ -258,7 +259,7 @@ export function NewContactClient() {
                           <CommandEmpty>
                             {formData.contactType.length > 0 ? (
                               <div className="py-3 px-4 text-sm">
-                                No matches found. Press enter to create "{formData.contactType}".
+                                No matches found. Press enter to create &quot;{formData.contactType}&quot;.
                               </div>
                             ) : (
                               <div className="py-3 px-4 text-sm">Type to search contact types</div>
@@ -301,7 +302,7 @@ export function NewContactClient() {
         </Card>
 
         <div className="flex justify-end gap-4">
-          <Link href="/dashboard/contacts">
+          <Link href="/contacts">
             <Button variant="outline">Cancel</Button>
           </Link>
           <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700" disabled={isLoading}>

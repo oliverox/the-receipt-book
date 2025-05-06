@@ -143,10 +143,22 @@ export const createOrganization = mutation({
       createdAt: Date.now(),
     });
 
+    // Create a default receipt type (Donation)
+    const donationTypeId = await ctx.db.insert("receiptTypes", {
+      name: "Donation",
+      description: "Receipts for donations and contributions",
+      organizationId,
+      isDefault: true,
+      active: true,
+      createdBy: user._id,
+      createdAt: Date.now(),
+    });
+
     // Create a default receipt template
     await ctx.db.insert("receiptTemplates", {
       name: "Default Template",
       organizationId,
+      receiptTypeId: donationTypeId,
       content: JSON.stringify({
         header: "{{organization.name}}",
         body: "Receipt for {{recipient.name}}",

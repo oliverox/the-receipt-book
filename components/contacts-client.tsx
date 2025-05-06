@@ -2,8 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Filter, MoreHorizontal, Plus, Search } from "lucide-react"
+import { MoreHorizontal, Plus, Search } from "lucide-react"
 import { useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
 
@@ -23,7 +22,6 @@ import { DashboardShell } from "@/components/dashboard-shell"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export function ContactsClient() {
-  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedType, setSelectedType] = useState<string | null>(null)
   
@@ -51,7 +49,7 @@ export function ContactsClient() {
   return (
     <DashboardShell>
       <DashboardHeader heading="Contacts" text="Manage your contributor contacts.">
-        <Link href="/dashboard/contacts/new">
+        <Link href="/contacts/new">
           <Button className="bg-emerald-600 hover:bg-emerald-700">
             <Plus className="mr-2 h-4 w-4" />
             New Contact
@@ -96,7 +94,7 @@ export function ContactsClient() {
                 ? "Try a different search term or clear filters" 
                 : "Start by adding a contact or create one when creating a new receipt"}
             </p>
-            <Link href="/dashboard/contacts/new">
+            <Link href="/contacts/new">
               <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">
                 <Plus className="mr-2 h-4 w-4" />
                 Add a Contact
@@ -119,7 +117,7 @@ export function ContactsClient() {
               {contacts.map((contact) => (
                 <TableRow key={contact._id}>
                   <TableCell>
-                    <Link href={`/dashboard/contacts/${contact._id}`} className="font-medium hover:underline">
+                    <Link href={`/contacts/${contact._id}`} className="font-medium hover:underline">
                       {contact.name}
                     </Link>
                   </TableCell>
@@ -143,10 +141,10 @@ export function ContactsClient() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <Link href={`/dashboard/contacts/${contact._id}`}>
+                        <Link href={`/contacts/${contact._id}`}>
                           <DropdownMenuItem>View details</DropdownMenuItem>
                         </Link>
-                        <Link href={`/dashboard/contacts/${contact._id}/edit`}>
+                        <Link href={`/contacts/${contact._id}/edit`}>
                           <DropdownMenuItem>Edit contact</DropdownMenuItem>
                         </Link>
                         <DropdownMenuSeparator />

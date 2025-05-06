@@ -2,7 +2,6 @@
 
 import { FileText, Mail, UserPlus, Settings, LayoutTemplate, ArrowRight } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useUser } from "@clerk/nextjs"
 import { useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -10,11 +9,11 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
 
-// Helper function to format timestamps
+// Helper function to format timestamps relatively
 const formatTimestamp = (timestamp: number) => {
   try {
     return formatDistanceToNow(new Date(timestamp), { addSuffix: true })
-  } catch (e) {
+  } catch {
     return "recently"
   }
 }
@@ -40,8 +39,15 @@ const getIconForAction = (action: string) => {
 }
 
 // Helper function to get user-friendly message for each action
-const getActivityMessage = (activity: any) => {
-  const { action, resourceType, details, resourceDetails } = activity
+const getActivityMessage = (activity: {
+  action: string, 
+  details?: string, 
+  resourceDetails?: {
+    receiptNumber?: string,
+    name?: string
+  }
+}) => {
+  const { action, details, resourceDetails } = activity
   
   switch (action) {
     case "create_receipt":
@@ -123,7 +129,7 @@ export function RecentActivity() {
             <div className="flex h-[200px] items-center justify-center rounded-md border border-dashed">
               <div className="flex flex-col items-center gap-2 text-center">
                 <p className="text-sm text-muted-foreground">No recent activity</p>
-                <Link href="/dashboard/receipts/new">
+                <Link href="/receipts/new">
                   <Button variant="outline" size="sm" className="mt-1">
                     Create your first receipt
                   </Button>

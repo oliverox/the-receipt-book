@@ -22,7 +22,6 @@ export function UserNav() {
   const { isLoaded, isSignedIn, user } = useUser()
   const { signOut } = useClerk()
   const userProfile = useQuery(api.auth.getUserProfile)
-  const orgSettings = useQuery(api.settings.getOrganizationSettings)
   
   // Get user initials for avatar fallback
   const getUserInitials = () => {
@@ -72,13 +71,13 @@ export function UserNav() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <Link href="/dashboard/settings" passHref>
+          <Link href="/settings" passHref>
             <DropdownMenuItem>
               <Settings className="mr-2 h-4 w-4" />
               <span>Settings</span>
             </DropdownMenuItem>
           </Link>
-          <Link href="/dashboard/settings?tab=billing" passHref>
+          <Link href="/settings?tab=billing" passHref>
             <DropdownMenuItem>
               <CreditCard className="mr-2 h-4 w-4" />
               <span>Billing</span>

@@ -1,11 +1,13 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { ConvexError } from "convex/values";
+import { getDefaultReceiptTypes } from "./receiptTypes";
+import { checkItemCategories } from "./itemCategories";
 
 /**
  * Generates a new receipt ID based on the organization's counter and format.
  */
-const generateReceiptId = async (ctx: any, organizationId: string) => {
+const generateReceiptId = async (ctx: any, organizationId: string, receiptType: any) => {
   // Get organization
   const organization = await ctx.db.get(organizationId);
   if (!organization) {
@@ -25,13 +27,25 @@ const generateReceiptId = async (ctx: any, organizationId: string) => {
   });
 
   // Generate receipt ID with format
-  const format = settings?.receiptNumberingFormat || "RCP-{YEAR}-{NUMBER}";
+  let format = settings?.receiptNumberingFormat || "{PREFIX}-{YEAR}-{NUMBER}";
+  
+  // Default prefix (if not found in format)
+  let prefix = "RCP";
+  
+  // If receipt type is available, use the first 3 letters of type name as prefix
+  if (receiptType) {
+    prefix = receiptType.name.substring(0, 3).toUpperCase();
+  }
   
   const year = new Date().getFullYear();
   const paddedCounter = newCounter.toString().padStart(4, "0");
+  const month = (new Date().getMonth() + 1).toString().padStart(2, "0");
   
+  // Replace placeholders
   return format
+    .replace("{PREFIX}", prefix)
     .replace("{YEAR}", year.toString())
+    .replace("{MONTH}", month)
     .replace("{NUMBER}", paddedCounter)
     .replace("{ORG}", organization.name.substring(0, 3).toUpperCase());
 };
@@ -191,6 +205,7 @@ const updateContactContributionStats = async (ctx: any, contactId: string, amoun
 export const createReceipt = mutation({
   args: {
     templateId: v.id("receiptTemplates"),
+    receiptTypeId: v.id("receiptTypes"),
     recipientName: v.string(),
     recipientEmail: v.optional(v.string()),
     recipientPhone: v.optional(v.string()),
@@ -199,9 +214,12 @@ export const createReceipt = mutation({
     currency: v.string(),
     date: v.number(),
     notes: v.optional(v.string()),
-    contributions: v.array(
+    items: v.array(
       v.object({
-        fundCategoryId: v.id("fundCategories"),
+        itemCategoryId: v.id("itemCategories"),
+        name: v.optional(v.string()),
+        quantity: v.optional(v.number()),
+        unitPrice: v.optional(v.number()),
         amount: v.number(),
         description: v.optional(v.string()),
       })
@@ -226,16 +244,64 @@ export const createReceipt = mutation({
       throw new ConvexError("User or organization not found");
     }
 
-    // Validate total amount matches sum of contributions
-    const totalContributions = args.contributions.reduce(
-      (sum, contribution) => sum + contribution.amount,
+    // Check if we have receipt types
+    const receiptTypes = await getDefaultReceiptTypes(ctx, user);
+    if (receiptTypes.length === 0) {
+      throw new ConvexError("No receipt types available. Please initialize receipt types first.");
+    }
+
+    // Get receipt type
+    const receiptType = await ctx.db.get(args.receiptTypeId);
+    if (!receiptType) {
+      throw new ConvexError("Receipt type not found");
+    }
+
+    // Check if categories exist for this receipt type
+    const categories = await checkItemCategories(ctx, user, args.receiptTypeId);
+    if (categories.length === 0) {
+      throw new ConvexError("No item categories available. Please initialize categories first.");
+    }
+
+    // For sales receipts, check if tax should be applied
+    let subtotalAmount = 0;
+    let taxAmount = 0;
+    let taxPercentage = 0;
+    let taxName = "";
+    
+    // Get the sum of all items
+    const totalItems = args.items.reduce(
+      (sum, item) => sum + item.amount,
       0
     );
-
-    if (totalContributions !== args.totalAmount) {
-      throw new ConvexError(
-        "Sum of contributions must equal total amount"
-      );
+    
+    // Get organization settings for tax settings
+    const orgSettings = await ctx.db
+      .query("organizationSettings")
+      .withIndex("by_organization", (q) => q.eq("organizationId", user.organizationId))
+      .unique();
+      
+    // Apply sales tax if this is a sales receipt and tax is enabled
+    if (receiptType.name === "Sales" && 
+        orgSettings?.salesTaxSettings?.enabled === true) {
+      
+      subtotalAmount = totalItems;
+      taxPercentage = orgSettings.salesTaxSettings.percentage;
+      taxName = orgSettings.salesTaxSettings.name;
+      taxAmount = Math.round(subtotalAmount * (taxPercentage / 100) * 100) / 100; // Round to 2 decimal places
+      
+      // Check if the total matches the subtotal + tax
+      if (Math.abs((subtotalAmount + taxAmount) - args.totalAmount) > 0.01) {
+        throw new ConvexError(
+          "For sales receipts with tax, total amount must equal subtotal plus tax"
+        );
+      }
+    } else {
+      // For non-sales receipts or sales without tax, validate total equals sum of items
+      if (totalItems !== args.totalAmount) {
+        throw new ConvexError(
+          "Sum of items must equal total amount"
+        );
+      }
     }
 
     // Find or create contact
@@ -246,14 +312,15 @@ export const createReceipt = mutation({
     }
 
     // Generate receipt ID
-    const receiptId = await generateReceiptId(ctx, user.organizationId);
+    const receiptId = await generateReceiptId(ctx, user.organizationId, receiptType);
 
     // Create receipt
-    const newReceiptId = await ctx.db.insert("receipts", {
+    const receiptData: any = {
       receiptId,
       organizationId: user.organizationId,
       createdBy: user._id,
       templateId: args.templateId,
+      receiptTypeId: args.receiptTypeId,
       recipientName: args.recipientName,
       recipientEmail: args.recipientEmail,
       recipientPhone: args.recipientPhone,
@@ -264,15 +331,29 @@ export const createReceipt = mutation({
       status: "draft",
       notes: args.notes,
       metadata: {},
-    });
+    };
+    
+    // Add tax information for sales receipts with tax
+    if (receiptType.name === "Sales" && 
+        orgSettings?.salesTaxSettings?.enabled === true) {
+      receiptData.subtotalAmount = subtotalAmount;
+      receiptData.taxAmount = taxAmount;
+      receiptData.taxPercentage = taxPercentage;
+      receiptData.taxName = taxName;
+    }
+    
+    const newReceiptId = await ctx.db.insert("receipts", receiptData);
 
-    // Create contributions
-    for (const contribution of args.contributions) {
-      await ctx.db.insert("receiptContributions", {
+    // Create receipt items
+    for (const item of args.items) {
+      await ctx.db.insert("receiptItems", {
         receiptId: newReceiptId,
-        fundCategoryId: contribution.fundCategoryId,
-        amount: contribution.amount,
-        description: contribution.description,
+        itemCategoryId: item.itemCategoryId,
+        name: item.name,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        amount: item.amount,
+        description: item.description,
       });
     }
 
@@ -312,12 +393,21 @@ export const getReceipt = query({
       recipientEmail: v.optional(v.string()),
       recipientPhone: v.optional(v.string()),
       totalAmount: v.number(),
+      subtotalAmount: v.optional(v.number()),
+      taxAmount: v.optional(v.number()),
+      taxPercentage: v.optional(v.number()),
+      taxName: v.optional(v.string()),
+      taxDisabled: v.optional(v.boolean()),
       currency: v.string(),
       date: v.number(),
       status: v.string(),
       sentVia: v.optional(v.string()),
       sentDate: v.optional(v.number()),
       notes: v.optional(v.string()),
+      receiptType: v.object({
+        _id: v.id("receiptTypes"),
+        name: v.string(),
+      }),
       contact: v.optional(v.object({
         _id: v.id("contacts"),
         name: v.string(),
@@ -326,13 +416,16 @@ export const getReceipt = query({
         }),
       })),
     }),
-    contributions: v.array(
+    items: v.array(
       v.object({
-        _id: v.id("receiptContributions"),
-        fundCategory: v.object({
-          _id: v.id("fundCategories"),
+        _id: v.id("receiptItems"),
+        itemCategory: v.object({
+          _id: v.id("itemCategories"),
           name: v.string(),
         }),
+        name: v.optional(v.string()),
+        quantity: v.optional(v.number()),
+        unitPrice: v.optional(v.number()),
         amount: v.number(),
         description: v.optional(v.string()),
       })
@@ -354,9 +447,15 @@ export const getReceipt = query({
       throw new ConvexError("Receipt not found");
     }
 
-    // Get contributions
-    const contributions = await ctx.db
-      .query("receiptContributions")
+    // Get receipt type
+    const receiptType = await ctx.db.get(receipt.receiptTypeId);
+    if (!receiptType) {
+      throw new ConvexError("Receipt type not found");
+    }
+
+    // Get items
+    const items = await ctx.db
+      .query("receiptItems")
       .withIndex("by_receipt", (q: any) => q.eq("receiptId", args.receiptId))
       .collect();
 
@@ -388,22 +487,25 @@ export const getReceipt = query({
       }
     }
 
-    // Get fund categories
-    const enrichedContributions = await Promise.all(
-      contributions.map(async (contribution) => {
-        const fundCategory = await ctx.db.get(contribution.fundCategoryId);
-        if (!fundCategory) {
-          throw new ConvexError("Fund category not found");
+    // Get item categories
+    const enrichedItems = await Promise.all(
+      items.map(async (item) => {
+        const itemCategory = await ctx.db.get(item.itemCategoryId);
+        if (!itemCategory) {
+          throw new ConvexError("Item category not found");
         }
         
         return {
-          _id: contribution._id,
-          fundCategory: {
-            _id: fundCategory._id,
-            name: fundCategory.name,
+          _id: item._id,
+          itemCategory: {
+            _id: itemCategory._id,
+            name: itemCategory.name,
           },
-          amount: contribution.amount,
-          description: contribution.description,
+          name: item.name,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          amount: item.amount,
+          description: item.description,
         };
       })
     );
@@ -422,9 +524,13 @@ export const getReceipt = query({
         sentVia: receipt.sentVia,
         sentDate: receipt.sentDate,
         notes: receipt.notes,
+        receiptType: {
+          _id: receiptType._id,
+          name: receiptType.name,
+        },
         contact: contactInfo,
       },
-      contributions: enrichedContributions,
+      items: enrichedItems,
       template: {
         _id: template._id,
         name: template.name,
@@ -446,6 +552,7 @@ export const listReceipts = query({
     status: v.optional(v.string()),
     search: v.optional(v.string()),
     contactId: v.optional(v.id("contacts")),
+    receiptTypeId: v.optional(v.id("receiptTypes")),
     limit: v.optional(v.number()),
     cursor: v.optional(v.id("receipts")),
   },
@@ -461,6 +568,10 @@ export const listReceipts = query({
         date: v.number(),
         status: v.string(),
         contactId: v.optional(v.id("contacts")),
+        receiptType: v.object({
+          _id: v.id("receiptTypes"),
+          name: v.string(),
+        }),
         createdBy: v.object({
           _id: v.id("users"),
           name: v.string(),
@@ -495,7 +606,17 @@ export const listReceipts = query({
         .withIndex("by_contact", (q: any) => 
           q.eq("contactId", args.contactId!).eq("organizationId", user.organizationId)
         );
-    } else {
+    }
+    // Filter by receipt type if provided
+    else if (args.receiptTypeId) {
+      baseQuery = ctx.db
+        .query("receipts")
+        .withIndex("by_receipt_type", (q: any) => 
+          q.eq("organizationId", user.organizationId).eq("receiptTypeId", args.receiptTypeId!)
+        );
+    }
+    // Otherwise, get all receipts for the organization
+    else {
       baseQuery = ctx.db
         .query("receipts")
         .withIndex("by_organization", (q: any) => q.eq("organizationId", user.organizationId));
@@ -539,13 +660,19 @@ export const listReceipts = query({
       nextCursor = receipts.pop()?._id;
     }
 
-    // Enrich with creator information
+    // Enrich with creator and receipt type information
     const enrichedReceipts = await Promise.all(
       receipts.map(async (receipt) => {
         const creator = await ctx.db.get(receipt.createdBy);
         if (!creator) {
           throw new ConvexError("Creator not found");
         }
+
+        const receiptType = await ctx.db.get(receipt.receiptTypeId);
+        if (!receiptType) {
+          throw new ConvexError("Receipt type not found");
+        }
+
         return {
           _id: receipt._id,
           receiptId: receipt.receiptId,
@@ -556,6 +683,10 @@ export const listReceipts = query({
           date: receipt.date,
           status: receipt.status,
           contactId: receipt.contactId,
+          receiptType: {
+            _id: receiptType._id,
+            name: receiptType.name,
+          },
           createdBy: {
             _id: creator._id,
             name: creator.name,

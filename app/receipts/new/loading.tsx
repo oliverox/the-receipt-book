@@ -12,7 +12,7 @@ export default function Loading() {
     <DashboardShell>
       <DashboardHeader heading="Create New Receipt" text="Generate a new receipt for contributions received.">
         <div className="flex gap-2">
-          <Link href="/dashboard/receipts">
+          <Link href="/receipts">
             <Button variant="outline">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Cancel

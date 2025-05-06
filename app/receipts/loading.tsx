@@ -11,7 +11,7 @@ export default function Loading() {
   return (
     <DashboardShell>
       <DashboardHeader heading="Receipts" text="View and manage all your organization's receipts.">
-        <Link href="/dashboard/receipts/new">
+        <Link href="/receipts/new">
           <Button className="bg-emerald-600 hover:bg-emerald-700">
             <Plus className="mr-2 h-4 w-4" />
             New Receipt

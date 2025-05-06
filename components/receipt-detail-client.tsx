@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { ArrowLeft, Download, Mail, Printer, Share2, Trash2 } from "lucide-react"
 import { useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
+import { formatDate } from "@/lib/utils"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -21,7 +22,6 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { DashboardShell } from "@/components/dashboard-shell"
-import { ReceiptPreview } from "@/components/receipt-preview"
 
 interface ReceiptDetailClientProps {
   receiptId: string
@@ -51,7 +51,7 @@ export function ReceiptDetailClient({ receiptId }: ReceiptDetailClientProps) {
           heading="Loading Receipt..."
           text="Please wait while we load the receipt details."
         >
-          <Link href="/dashboard/receipts">
+          <Link href="/receipts">
             <Button variant="outline">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Receipts
@@ -71,24 +71,37 @@ export function ReceiptDetailClient({ receiptId }: ReceiptDetailClientProps) {
     )
   }
 
-  const { receipt, contributions } = receiptData
+  const { receipt, items } = receiptData
 
   const formattedReceipt = {
     receiptNumber: receipt.receiptId,
-    date: new Date(receipt.date).toLocaleDateString(),
-    contributor: {
+    receiptType: receipt.receiptType.name,
+    date: formatDate(receipt.date),
+    recipient: {
       name: receipt.recipientName,
       email: receipt.recipientEmail || "",
       phone: receipt.recipientPhone || "",
       address: "", // Add address field to schema if needed
     },
-    items: contributions.map(contribution => ({
-      category: contribution.fundCategory.name,
-      amount: contribution.amount,
+    items: items.map(item => ({
+      category: item.itemCategory.name,
+      name: item.name || "",
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+      amount: item.amount,
     })),
     total: receipt.totalAmount,
     status: receipt.status,
     notes: receipt.notes || "",
+    // Add sales tax information for sales receipts (respect the taxDisabled flag)
+    ...(receipt.receiptType.name === "Sales" && receipt.subtotalAmount && !receipt.taxDisabled && receipt.taxAmount && receipt.taxPercentage && receipt.taxName && {
+      subtotal: receipt.subtotalAmount,
+      tax: {
+        amount: receipt.taxAmount,
+        percentage: receipt.taxPercentage,
+        name: receipt.taxName
+      }
+    })
   }
 
   const handleVoidReceipt = () => {
@@ -99,7 +112,7 @@ export function ReceiptDetailClient({ receiptId }: ReceiptDetailClientProps) {
     setTimeout(() => {
       setIsVoiding(false)
       setIsVoidDialogOpen(false)
-      router.push("/dashboard/receipts")
+      router.push("/receipts")
     }, 1500)
   }
 
@@ -110,7 +123,7 @@ export function ReceiptDetailClient({ receiptId }: ReceiptDetailClientProps) {
         text="View receipt details and download or share the receipt."
       >
         <div className="flex gap-2">
-          <Link href="/dashboard/receipts">
+          <Link href="/receipts">
             <Button variant="outline">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Receipts
@@ -123,7 +136,7 @@ export function ReceiptDetailClient({ receiptId }: ReceiptDetailClientProps) {
         </div>
       </DashboardHeader>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-1">
         <div className="space-y-6">
           <Card>
             <CardHeader>
@@ -134,6 +147,10 @@ export function ReceiptDetailClient({ receiptId }: ReceiptDetailClientProps) {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Receipt Number</p>
                   <p>{formattedReceipt.receiptNumber}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Receipt Type</p>
+                  <p>{formattedReceipt.receiptType}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Date</p>
@@ -156,37 +173,64 @@ export function ReceiptDetailClient({ receiptId }: ReceiptDetailClientProps) {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total Amount</p>
-                  <p className="font-bold">{receipt.currency || currencySymbol}{formattedReceipt.total.toLocaleString()}</p>
+                  <p className="font-bold">{receipt.currency || currencySymbol} {formattedReceipt.total.toLocaleString()}</p>
                 </div>
               </div>
 
               <Separator />
 
               <div>
-                <p className="text-sm font-medium text-muted-foreground mb-2">Contributor Information</p>
-                <p className="font-medium">{formattedReceipt.contributor.name}</p>
-                <p>{formattedReceipt.contributor.email}</p>
-                <p>{formattedReceipt.contributor.phone}</p>
-                {formattedReceipt.contributor.address && (
-                  <p className="text-sm text-muted-foreground">{formattedReceipt.contributor.address}</p>
+                <p className="text-sm font-medium text-muted-foreground mb-2">Recipient Information</p>
+                <p className="font-medium">{formattedReceipt.recipient.name}</p>
+                <p>{formattedReceipt.recipient.email}</p>
+                <p>{formattedReceipt.recipient.phone}</p>
+                {formattedReceipt.recipient.address && (
+                  <p className="text-sm text-muted-foreground">{formattedReceipt.recipient.address}</p>
                 )}
               </div>
 
               <Separator />
 
               <div>
-                <p className="text-sm font-medium text-muted-foreground mb-2">Fund Contributions</p>
+                <p className="text-sm font-medium text-muted-foreground mb-2">
+                  {formattedReceipt.receiptType === "Donation" 
+                    ? "Fund Contributions" 
+                    : formattedReceipt.receiptType === "Sales" 
+                      ? "Items" 
+                      : "Services"}
+                </p>
                 <div className="space-y-2">
-                  {formattedReceipt.items.map((item, index) => (
-                    <div key={index} className="flex justify-between">
-                      <p>{item.category}</p>
-                      <p>{receipt.currency || currencySymbol}{item.amount.toLocaleString()}</p>
+                  {formattedReceipt.receiptType === "Sales" ? (
+                    // Display sales receipt items with quantity and unit price
+                    <div>
+                      <div className="grid grid-cols-4 gap-2 mb-2 text-sm text-muted-foreground">
+                        <p>Item</p>
+                        <p className="text-right">Qty</p>
+                        <p className="text-right">Unit Price</p>
+                        <p className="text-right">Amount</p>
+                      </div>
+                      {formattedReceipt.items.map((item, index) => (
+                        <div key={index} className="grid grid-cols-4 gap-2">
+                          <p>{item.name || item.category}</p>
+                          <p className="text-right">{item.quantity || 1}</p>
+                          <p className="text-right">{receipt.currency || currencySymbol} {item.unitPrice?.toLocaleString() || (item.amount / (item.quantity || 1)).toLocaleString()}</p>
+                          <p className="text-right">{receipt.currency || currencySymbol} {item.amount.toLocaleString()}</p>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  ) : (
+                    // Display donation or service receipt items
+                    formattedReceipt.items.map((item, index) => (
+                      <div key={index} className="flex justify-between">
+                        <p>{item.name || item.category}</p>
+                        <p>{receipt.currency || currencySymbol} {item.amount.toLocaleString()}</p>
+                      </div>
+                    ))
+                  )}
                   <Separator />
                   <div className="flex justify-between font-bold">
                     <p>Total</p>
-                    <p>{receipt.currency || currencySymbol}{formattedReceipt.total.toLocaleString()}</p>
+                    <p>{receipt.currency || currencySymbol} {formattedReceipt.total.toLocaleString()}</p>
                   </div>
                 </div>
               </div>
@@ -242,15 +286,6 @@ export function ReceiptDetailClient({ receiptId }: ReceiptDetailClientProps) {
             </Dialog>
           </div>
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Receipt Preview</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ReceiptPreview receipt={formattedReceipt} />
-          </CardContent>
-        </Card>
       </div>
     </DashboardShell>
   )

@@ -1,18 +1,28 @@
 # The Receipt Book
 
-A comprehensive donation and receipt management system designed for non-profit organizations and religious institutions to efficiently track contributions, manage contacts, and generate professional receipts.
+A flexible, generic receipt management system designed to support various types of receipts including donations, sales, and services - perfect for non-profit organizations, religious institutions, retail businesses, and service providers.
 
 ## Overview
 
-The Receipt Book is a full-stack web application built to streamline the donation management process. It helps organizations maintain accurate records of contributions, organize contributor information, and generate professional receipts for tax and record-keeping purposes.
+The Receipt Book is a full-stack web application built to streamline the receipt management process. It helps organizations maintain accurate records, organize recipient information, and generate professional receipts for different purposes including:
+
+- **Donation receipts** for religious organizations and non-profits
+- **Sales receipts** for retail businesses
+- **Service receipts** for service providers and consultants
 
 ## Key Features
 
+### Multiple Receipt Types
+- **Donation Receipts**: Track contributions to various funds with tax deduction information
+- **Sales Receipts**: Generate detailed receipts with products, quantities, and unit prices 
+- **Service Receipts**: Document services provided with warranty information
+- Easily extend with custom receipt types for specific business needs
+
 ### Receipt Management
-- Create and manage donation receipts
-- Support for multiple fund categories within a single receipt
+- Create and manage receipts of various types from a single interface
+- Support for multiple items within a single receipt (funds, products, services)
 - Automatic calculation of totals
-- Professional receipt templates for printing and email
+- Type-specific receipt templates for printing and email
 - Receipt history tracking and status management
 
 ### Contact Management
@@ -111,6 +121,53 @@ pnpm dev
 - Customize currency settings (symbol, code)
 - Organization profile management
 - Receipt numbering preferences
+
+## Testing the New Generic Receipt System
+
+After the recent update, the receipt system now supports multiple receipt types. To test this functionality:
+
+1. Create a new receipt and select one of the available receipt types (Donation, Sales, Service)
+2. Notice how the form adapts to show different fields based on the selected type:
+   - Sales receipts show quantity and unit price fields
+   - Donation receipts focus on fund categories
+   - Service receipts emphasize service descriptions
+3. Select an appropriate template for your receipt type
+4. Fill in recipient information and add items specific to your receipt type
+5. Generate the receipt and notice how the formatting and content change based on the receipt type
+
+Each receipt type has its own set of categories and templates, making the system truly flexible for various business needs.
+
+## Usage Examples
+
+### Creating a Donation Receipt
+
+Perfect for religious organizations, charities, or any non-profit accepting donations:
+
+1. Select "Donation" as the receipt type
+2. Choose a donation receipt template
+3. Enter contributor information
+4. Add fund categories and contribution amounts
+5. Generate and send the receipt with tax deduction information
+
+### Creating a Sales Receipt
+
+Ideal for retail businesses selling products:
+
+1. Select "Sales" as the receipt type
+2. Choose a sales receipt template 
+3. Enter customer information
+4. Add products with quantities and unit prices
+5. Generate and send the detailed sales receipt
+
+### Creating a Service Receipt
+
+Great for consultants, freelancers, or service providers:
+
+1. Select "Service" as the receipt type
+2. Choose a service receipt template
+3. Enter client information
+4. Add services rendered with respective costs
+5. Generate and send the service receipt with warranty information
 
 ## License
 
