@@ -283,7 +283,7 @@ export function NewReceiptClient() {
   
   // Handle receipt type selection
   const handleReceiptTypeChange = (receiptTypeId: string): void => {
-    const receiptType = receiptTypes.find(type => type._id === receiptTypeId)
+    const receiptType = receiptTypes.find((type: { _id: string; name: string }) => type._id === receiptTypeId)
     if (receiptType) {
       setSelectedReceiptType(receiptType)
       setFormData({
@@ -523,7 +523,7 @@ export function NewReceiptClient() {
                     <SelectValue placeholder="Select receipt type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {receiptTypes.map((type) => (
+                    {receiptTypes.map((type: { _id: string; name: string }) => (
                       <SelectItem key={type._id} value={type._id}>
                         {type.name}
                       </SelectItem>
@@ -854,7 +854,7 @@ export function NewReceiptClient() {
                                     >
                                       <div className="flex items-center">
                                         <Plus className="mr-2 h-4 w-4" />
-                                        <span>Create "{item.categoryName}"</span>
+                                        <span>Create &quot;{item.categoryName}&quot;</span>
                                       </div>
                                     </CommandItem>
                                   </CommandGroup>

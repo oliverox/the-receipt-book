@@ -14,6 +14,7 @@ import {
 } from "lucide-react"
 import { useQuery, useMutation } from "convex/react"
 import { api } from "@/convex/_generated/api"
+import { Id } from "@/convex/_generated/dataModel"
 import { useToast } from "@/components/ui/use-toast"
 import { useSearchParams } from "next/navigation"
 
@@ -105,8 +106,8 @@ export default function SettingsPage() {
   const [newCategoryName, setNewCategoryName] = useState("")
   const [newCategoryDescription, setNewCategoryDescription] = useState("")
   const [newCategoryType, setNewCategoryType] = useState("donation")
-  const [editingCategory, setEditingCategory] = useState<{ id: string, name: string, description: string } | null>(null)
-  const [deletingCategoryId, setDeletingCategoryId] = useState<string | null>(null)
+  const [editingCategory, setEditingCategory] = useState<{ id: Id<"itemCategories">, name: string, description: string } | null>(null)
+  const [deletingCategoryId, setDeletingCategoryId] = useState<Id<"itemCategories"> | null>(null)
   
   // Convex queries and mutations
   const userProfile = useQuery(api.auth.getUserProfile)
@@ -114,9 +115,9 @@ export default function SettingsPage() {
   const receiptTypes = useQuery(api.receiptTypes.listReceiptTypes) || []
   
   // Find receipt type IDs for the different tabs
-  const donationTypeId = receiptTypes.find(type => type.name === "Donation")?._id
-  const salesTypeId = receiptTypes.find(type => type.name === "Sales")?._id
-  const serviceTypeId = receiptTypes.find(type => type.name === "Service")?._id
+  const donationTypeId = receiptTypes.find((type: { name: string; _id: string }) => type.name === "Donation")?._id
+  const salesTypeId = receiptTypes.find((type: { name: string; _id: string }) => type.name === "Sales")?._id
+  const serviceTypeId = receiptTypes.find((type: { name: string; _id: string }) => type.name === "Service")?._id
   
   // Get the current receipt type ID based on selected category tab
   const getSelectedTypeId = () => {
@@ -300,7 +301,7 @@ export default function SettingsPage() {
   }
   
   // Open edit dialog for a category
-  const openEditCategoryDialog = (category: { _id: string, name: string, description?: string }) => {
+  const openEditCategoryDialog = (category: { _id: Id<"itemCategories">, name: string, description?: string }) => {
     setEditingCategory({
       id: category._id,
       name: category.name,
@@ -310,7 +311,7 @@ export default function SettingsPage() {
   }
   
   // Open delete dialog for a category
-  const openDeleteCategoryDialog = (categoryId: string) => {
+  const openDeleteCategoryDialog = (categoryId: Id<"itemCategories">) => {
     setDeletingCategoryId(categoryId)
     setIsDeleteCategoryDialogOpen(true)
   }

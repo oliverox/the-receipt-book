@@ -13,6 +13,7 @@ import {
 } from "lucide-react"
 import { useMutation, useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
+import { Id } from "@/convex/_generated/dataModel"
 
 import { Button } from "@/components/ui/button"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
@@ -69,7 +70,7 @@ export default function TeamPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isRolePopoverOpen, setIsRolePopoverOpen] = useState(false)
   const [isTitlePopoverOpen, setIsTitlePopoverOpen] = useState(false)
-  const [selectedUserId, setSelectedUserId] = useState("")
+  const [selectedUserId, setSelectedUserId] = useState<Id<"users"> | "">("")
   const [searchQuery, setSearchQuery] = useState("")
   
   // Form state for adding new team member
@@ -148,7 +149,7 @@ export default function TeamPage() {
   }
 
   // Handle role update
-  const handleRoleUpdate = async (userId: string, role: string) => {
+  const handleRoleUpdate = async (userId: Id<"users">, role: string) => {
     try {
       await updateUserProfile({
         userId,
@@ -170,7 +171,7 @@ export default function TeamPage() {
   }
 
   // Handle title update
-  const handleTitleUpdate = async (userId: string, title: string) => {
+  const handleTitleUpdate = async (userId: Id<"users">, title: string) => {
     try {
       await updateUserProfile({
         userId,
@@ -192,7 +193,7 @@ export default function TeamPage() {
   }
 
   // Handle remove user
-  const handleRemoveUser = async (userId: string) => {
+  const handleRemoveUser = async (userId: Id<"users">) => {
     try {
       await deactivateUser({
         userId,

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { ArrowLeft, Download, Mail, Printer, Share2, Trash2 } from "lucide-react"
 import { useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
+import { Id } from "@/convex/_generated/dataModel"
 import { formatDate } from "@/lib/utils"
 
 import { Button } from "@/components/ui/button"
@@ -24,7 +25,7 @@ import { DashboardHeader } from "@/components/dashboard-header"
 import { DashboardShell } from "@/components/dashboard-shell"
 
 interface ReceiptDetailClientProps {
-  receiptId: string
+  receiptId: string | Id<"receipts">
 }
 
 export function ReceiptDetailClient({ receiptId }: ReceiptDetailClientProps) {
@@ -34,7 +35,7 @@ export function ReceiptDetailClient({ receiptId }: ReceiptDetailClientProps) {
 
   // Get receipt data from Convex
   const receiptData = useQuery(api.receipts.getReceipt, { 
-    receiptId 
+    receiptId: receiptId as Id<"receipts"> 
   })
 
   // Get organization settings for currency
@@ -73,6 +74,15 @@ export function ReceiptDetailClient({ receiptId }: ReceiptDetailClientProps) {
 
   const { receipt, items } = receiptData
 
+  // Check if receipt has tax information
+  const hasTaxInfo = 'taxAmount' in receipt && 
+                    typeof receipt.taxAmount === 'number' && 
+                    'taxPercentage' in receipt && 
+                    typeof receipt.taxPercentage === 'number' && 
+                    'taxName' in receipt && 
+                    typeof receipt.taxName === 'string';
+
+  // Create formatted receipt object
   const formattedReceipt = {
     receiptNumber: receipt.receiptId,
     receiptType: receipt.receiptType.name,
@@ -93,13 +103,13 @@ export function ReceiptDetailClient({ receiptId }: ReceiptDetailClientProps) {
     total: receipt.totalAmount,
     status: receipt.status,
     notes: receipt.notes || "",
-    // Add sales tax information for sales receipts (respect the taxDisabled flag)
-    ...(receipt.receiptType.name === "Sales" && receipt.subtotalAmount && !receipt.taxDisabled && receipt.taxAmount && receipt.taxPercentage && receipt.taxName && {
-      subtotal: receipt.subtotalAmount,
+    // Add sales tax information only if available and for sales receipts
+    ...(receipt.receiptType.name === "Sales" && hasTaxInfo && {
+      subtotal: receipt.totalAmount - (typeof receipt.taxAmount === 'number' ? receipt.taxAmount : 0),
       tax: {
-        amount: receipt.taxAmount,
-        percentage: receipt.taxPercentage,
-        name: receipt.taxName
+        amount: receipt.taxAmount as number,
+        percentage: receipt.taxPercentage as number,
+        name: receipt.taxName as string
       }
     })
   }

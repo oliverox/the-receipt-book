@@ -5,6 +5,7 @@ import Link from "next/link"
 import { MoreHorizontal, Plus, Search } from "lucide-react"
 import { useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
+import { Id } from "@/convex/_generated/dataModel"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -23,7 +24,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 export function ContactsClient() {
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedType, setSelectedType] = useState<string | null>(null)
+  const [selectedType, setSelectedType] = useState<Id<"contactTypes"> | null>(null)
   
   // Get contact types for filter dropdown
   const contactTypes = useQuery(api.contacts.listContactTypes) || []
@@ -68,8 +69,8 @@ export function ContactsClient() {
             />
           </div>
           <Select
-            value={selectedType || 'all'}
-            onValueChange={(value) => setSelectedType(value === 'all' ? null : value)}
+            value={selectedType?.toString() || 'all'}
+            onValueChange={(value) => setSelectedType(value === 'all' ? null : value as Id<"contactTypes">)}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Filter by type" />
