@@ -22,7 +22,6 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { DashboardHeader } from "@/components/dashboard-header"
-import { DashboardShell } from "@/components/dashboard-shell"
 
 interface ReceiptDetailClientProps {
   receiptId: string | Id<"receipts">
@@ -47,7 +46,7 @@ export function ReceiptDetailClient({ receiptId }: ReceiptDetailClientProps) {
   // Handle loading state
   if (!receiptData) {
     return (
-      <DashboardShell>
+      <>
         <DashboardHeader
           heading="Loading Receipt..."
           text="Please wait while we load the receipt details."
@@ -68,7 +67,7 @@ export function ReceiptDetailClient({ receiptId }: ReceiptDetailClientProps) {
             </Card>
           </div>
         </div>
-      </DashboardShell>
+      </>
     )
   }
 
@@ -127,7 +126,7 @@ export function ReceiptDetailClient({ receiptId }: ReceiptDetailClientProps) {
   }
 
   return (
-    <DashboardShell>
+    <>
       <DashboardHeader
         heading={`Receipt #${formattedReceipt.receiptNumber}`}
         text="View receipt details and download or share the receipt."
@@ -297,6 +296,6 @@ export function ReceiptDetailClient({ receiptId }: ReceiptDetailClientProps) {
           </div>
         </div>
       </div>
-    </DashboardShell>
+    </>
   )
 }

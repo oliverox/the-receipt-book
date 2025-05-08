@@ -4,12 +4,11 @@ import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { DashboardHeader } from "@/components/dashboard-header"
-import { DashboardShell } from "@/components/dashboard-shell"
 import { Separator } from "@/components/ui/separator"
 
 export default function Loading() {
   return (
-    <DashboardShell>
+    <>
       <DashboardHeader heading="Create New Receipt" text="Generate a new receipt for contributions received.">
         <div className="flex gap-2">
           <Link href="/receipts">
@@ -96,6 +95,6 @@ export default function Loading() {
           <div className="h-10 w-32 animate-pulse bg-muted rounded-md"></div>
         </div>
       </div>
-    </DashboardShell>
+    </>
   )
 }

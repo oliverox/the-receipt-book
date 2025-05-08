@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "The Receipt Book - Digital Receipt Management",
-  description: "Streamline your contribution receipts with our digital solution",
+  title: "Digital Receipt Pro - Professional Receipt Management",
+  description: "Streamline your business with professional digital receipts — create, send, and track instantly",
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },

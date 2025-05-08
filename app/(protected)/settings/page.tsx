@@ -26,7 +26,6 @@ import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { DashboardHeader } from "@/components/dashboard-header"
-import { DashboardShell } from "@/components/dashboard-shell"
 import { ReceiptTemplatePreview } from "@/components/receipt-template-preview"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -546,19 +545,19 @@ export default function SettingsPage() {
   
   if (isDataLoading) {
     return (
-      <DashboardShell>
+      <>
         <div className="flex h-[50vh] items-center justify-center">
           <div className="flex flex-col items-center gap-2">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600"></div>
             <p className="text-sm text-muted-foreground">Loading settings...</p>
           </div>
         </div>
-      </DashboardShell>
+      </>
     )
   }
   
   return (
-    <DashboardShell>
+    <>
       <DashboardHeader heading="Settings" text="Manage your organization and receipt settings." />
       <Tabs defaultValue={defaultTab} className="space-y-4">
         <TabsList>
@@ -1412,6 +1411,6 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
       </Tabs>
-    </DashboardShell>
+    </>
   )
 }

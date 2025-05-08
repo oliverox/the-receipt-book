@@ -4,11 +4,10 @@ import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { DashboardHeader } from "@/components/dashboard-header"
-import { DashboardShell } from "@/components/dashboard-shell"
 
 export default function Loading() {
   return (
-    <DashboardShell>
+    <>
       <DashboardHeader
         heading="Loading Receipt..."
         text="Please wait while we load the receipt details."
@@ -72,6 +71,6 @@ export default function Loading() {
           </CardContent>
         </Card>
       </div>
-    </DashboardShell>
+    </>
   )
 }

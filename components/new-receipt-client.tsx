@@ -18,7 +18,6 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { DashboardHeader } from "@/components/dashboard-header"
-import { DashboardShell } from "@/components/dashboard-shell"
 import { useToast } from "@/components/ui/use-toast"
 import { 
   Command, 
@@ -491,7 +490,7 @@ export function NewReceiptClient() {
   }
 
   return (
-    <DashboardShell>
+    <>
       <DashboardHeader heading="Create New Receipt" text="Generate a new receipt for contributions received.">
         <div className="flex gap-2">
           <Link href="/receipts">
@@ -1013,6 +1012,6 @@ export function NewReceiptClient() {
           </Button>
         </div>
       </form>
-    </DashboardShell>
+    </>
   )
 }

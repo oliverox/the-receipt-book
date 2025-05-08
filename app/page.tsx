@@ -2,6 +2,7 @@ import Link from "next/link"
 import { ArrowRight, CheckCircle, FileText, Settings, Users } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { ParticlesBackground } from "@/components/particles-background"
 
 export default function LandingPage() {
   return (
@@ -9,8 +10,8 @@ export default function LandingPage() {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
-            <FileText className="h-6 w-6 text-emerald-600" />
-            <span className="text-xl font-bold">ReceiptPro</span>
+            <img src="/logo.png" alt="Digital Receipt Pro Logo" className="h-8 w-auto" />
+            <span className="text-xl font-bold">Digital Receipt Pro</span>
           </div>
           <nav className="hidden md:flex gap-6">
             <Link href="#features" className="text-sm font-medium hover:text-emerald-600 transition-colors">
@@ -34,14 +35,17 @@ export default function LandingPage() {
         </div>
       </header>
       <main className="flex-1">
-        <section className="py-20 md:py-28">
-          <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 flex flex-col items-center text-center">
+        <section className="py-20 md:py-28 relative overflow-hidden min-h-[500px] flex items-center">
+          <div className="absolute inset-0 z-0">
+            <ParticlesBackground className="w-full h-full" />
+          </div>
+          {/* <div className="absolute inset-0 z-[1] bg-gradient-to-b from-slate-900/70 to-slate-900/90"></div> */}
+          <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 flex flex-col items-center text-center relative z-[2]">
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
-              Modern Receipt Management for <span className="text-emerald-600">Organizations</span>
+              <span className="text-emerald-600">Digital Receipt Pro</span>
             </h1>
-            <p className="mt-6 max-w-3xl text-lg md:text-xl text-muted-foreground">
-              Streamline your contribution receipts with our digital solution. Create, customize, and send professional
-              receipts in seconds.
+            <p className="mt-6 max-w-3xl text-lg md:text-xl text-gray-500">
+              Streamline your business with professional digital receipts — create, send, and track instantly with one click.
             </p>
             <div className="mt-10 flex flex-col sm:flex-row gap-4">
               <Link href="/sign-up">
@@ -62,27 +66,35 @@ export default function LandingPage() {
         <section id="features" className="py-20 bg-slate-50 dark:bg-slate-900">
           <div className="mx-auto max-w-7xl w-full px-4 sm:px-6">
             <h2 className="text-3xl font-bold text-center mb-12">Key Features</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm">
                 <FileText className="h-10 w-10 text-emerald-600 mb-4" />
-                <h3 className="text-xl font-bold mb-2">Customizable Receipts</h3>
+                <h3 className="text-xl font-bold mb-2">Instant Digital Delivery</h3>
                 <p className="text-muted-foreground">
-                  Create professional receipts with your organization&apos;s branding, custom receipt IDs, and multiple fund
-                  categories.
+                  Create and email professional digital receipts instantly with a single click. Your customers receive beautifully formatted receipts in seconds.
                 </p>
               </div>
               <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm">
                 <Users className="h-10 w-10 text-emerald-600 mb-4" />
-                <h3 className="text-xl font-bold mb-2">Team Collaboration</h3>
+                <h3 className="text-xl font-bold mb-2">Professional Templates</h3>
                 <p className="text-muted-foreground">
-                  Add team members with different roles to manage receipts, funds, and settings based on permissions.
+                  Comprehensive selection of business receipt templates with automatic tax calculation, custom branding, and itemized details.
                 </p>
               </div>
               <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm">
                 <Settings className="h-10 w-10 text-emerald-600 mb-4" />
-                <h3 className="text-xl font-bold mb-2">Advanced Management</h3>
+                <h3 className="text-xl font-bold mb-2">Customer Management</h3>
                 <p className="text-muted-foreground">
-                  Search, filter, and organize receipts. Preview PDFs before sending via email or WhatsApp.
+                  Track customer purchase history, manage business relationships, and maintain complete records of all transactions in one secure place.
+                </p>
+              </div>
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm">
+                <svg className="h-10 w-10 text-emerald-600 mb-4" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                  <path d="M5 21h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2zM5 5h3.5v14H5V5zm5 0h3.5v14H10V5zm5 0h4v14h-4V5z" />
+                </svg>
+                <h3 className="text-xl font-bold mb-2">Business Analytics</h3>
+                <p className="text-muted-foreground">
+                  Track sales trends, monitor financial activity, and gain valuable business insights with built-in reporting and visualization tools.
                 </p>
               </div>
             </div>
@@ -98,28 +110,28 @@ export default function LandingPage() {
                   <span className="text-emerald-600 font-bold">1</span>
                 </div>
                 <h3 className="text-lg font-bold mb-2">Sign Up</h3>
-                <p className="text-muted-foreground">Create an account for your organization</p>
+                <p className="text-muted-foreground">Create your business account in seconds</p>
               </div>
               <div className="flex flex-col items-center text-center">
                 <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
                   <span className="text-emerald-600 font-bold">2</span>
                 </div>
                 <h3 className="text-lg font-bold mb-2">Customize</h3>
-                <p className="text-muted-foreground">Set up your organization details and receipt templates</p>
+                <p className="text-muted-foreground">Set up your business branding and receipt templates</p>
               </div>
               <div className="flex flex-col items-center text-center">
                 <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
                   <span className="text-emerald-600 font-bold">3</span>
                 </div>
                 <h3 className="text-lg font-bold mb-2">Create Receipts</h3>
-                <p className="text-muted-foreground">Generate detailed receipts for contributions</p>
+                <p className="text-muted-foreground">Generate professional receipts for any transaction</p>
               </div>
               <div className="flex flex-col items-center text-center">
                 <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
                   <span className="text-emerald-600 font-bold">4</span>
                 </div>
-                <h3 className="text-lg font-bold mb-2">Share</h3>
-                <p className="text-muted-foreground">Send receipts via email or WhatsApp</p>
+                <h3 className="text-lg font-bold mb-2">Deliver Instantly</h3>
+                <p className="text-muted-foreground">Email digital receipts to customers with one click</p>
               </div>
             </div>
           </div>
@@ -137,7 +149,7 @@ export default function LandingPage() {
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-center">
                     <CheckCircle className="h-5 w-5 text-emerald-600 mr-2" />
-                    <span>Up to 100 receipts/month</span>
+                    <span>Up to 250 receipts/month</span>
                   </li>
                   <li className="flex items-center">
                     <CheckCircle className="h-5 w-5 text-emerald-600 mr-2" />
@@ -145,7 +157,7 @@ export default function LandingPage() {
                   </li>
                   <li className="flex items-center">
                     <CheckCircle className="h-5 w-5 text-emerald-600 mr-2" />
-                    <span>Basic receipt templates</span>
+                    <span>Standard receipt templates</span>
                   </li>
                 </ul>
                 <Button className="w-full bg-emerald-600 hover:bg-emerald-700">Get Started</Button>
@@ -161,7 +173,7 @@ export default function LandingPage() {
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-center">
                     <CheckCircle className="h-5 w-5 text-emerald-600 mr-2" />
-                    <span>Up to 500 receipts/month</span>
+                    <span>Up to 1,000 receipts/month</span>
                   </li>
                   <li className="flex items-center">
                     <CheckCircle className="h-5 w-5 text-emerald-600 mr-2" />
@@ -210,11 +222,11 @@ export default function LandingPage() {
       <footer className="border-t py-10">
         <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center">
           <div className="flex items-center gap-2 mb-4 md:mb-0">
-            <FileText className="h-6 w-6 text-emerald-600" />
-            <span className="text-xl font-bold">ReceiptPro</span>
+            <img src="/logo.png" alt="Digital Receipt Pro Logo" className="h-8 w-auto" />
+            <span className="text-xl font-bold">Digital Receipt Pro</span>
           </div>
           <div className="text-center md:text-right text-sm text-muted-foreground">
-            <p>© 2024 ReceiptPro. All rights reserved.</p>
+            <p>© 2024 Digital Receipt Pro. All rights reserved.</p>
             <p className="mt-1">
               <Link href="#" className="hover:underline">
                 Privacy Policy

@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DashboardHeader } from "@/components/dashboard-header"
-import { DashboardShell } from "@/components/dashboard-shell"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export function ContactsClient() {
@@ -48,7 +47,7 @@ export function ContactsClient() {
   }
 
   return (
-    <DashboardShell>
+    <>
       <DashboardHeader heading="Contacts" text="Manage your contributor contacts.">
         <Link href="/contacts/new">
           <Button className="bg-emerald-600 hover:bg-emerald-700">
@@ -160,6 +159,6 @@ export function ContactsClient() {
           </Table>
         )}
       </div>
-    </DashboardShell>
+    </>
   )
 }

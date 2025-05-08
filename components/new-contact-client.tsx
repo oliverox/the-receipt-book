@@ -14,7 +14,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { DashboardHeader } from "@/components/dashboard-header"
-import { DashboardShell } from "@/components/dashboard-shell"
 import { useToast } from "@/components/ui/use-toast"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -150,7 +149,7 @@ export function NewContactClient() {
   }
 
   return (
-    <DashboardShell>
+    <>
       <DashboardHeader heading="New Contact" text="Create a new contact entry for your organization.">
         <Link href="/contacts">
           <Button variant="outline">
@@ -310,6 +309,6 @@ export function NewContactClient() {
           </Button>
         </div>
       </form>
-    </DashboardShell>
+    </>
   )
 }

@@ -4,8 +4,9 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { useOnboarding } from "@/hooks/use-onboarding";
+import { DashboardShell } from "@/components/dashboard-shell";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const { isLoaded, isSignedIn } = useUser();
   const router = useRouter();
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -36,5 +37,5 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
-  return <>{children}</>;
+  return <DashboardShell>{children}</DashboardShell>;
 }

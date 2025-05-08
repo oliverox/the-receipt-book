@@ -4,12 +4,11 @@ import { CalendarDays, Download, Filter, Plus, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DashboardHeader } from "@/components/dashboard-header"
-import { DashboardShell } from "@/components/dashboard-shell"
 import { ReceiptsClient } from "@/components/receipts-client"
 
 export default function ReceiptsPage() {
   return (
-    <DashboardShell>
+    <>
       <DashboardHeader heading="Receipts" text="View and manage all your organization's receipts.">
         <Link href="/receipts/new">
           <Button className="bg-emerald-600 hover:bg-emerald-700">
@@ -39,6 +38,6 @@ export default function ReceiptsPage() {
         </Button>
       </div>
       <ReceiptsClient />
-    </DashboardShell>
+    </>
   )
 }

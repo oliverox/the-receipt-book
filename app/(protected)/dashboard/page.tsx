@@ -21,7 +21,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DashboardHeader } from "@/components/dashboard-header"
-import { DashboardShell } from "@/components/dashboard-shell"
 import { ReceiptList } from "@/components/receipt-list"
 import { RecentActivity } from "@/components/recent-activity"
 
@@ -48,14 +47,12 @@ export default function DashboardPage() {
   // Show loading until everything is ready
   if (isInitializing || !userProfile || !orgSettings) {
     return (
-      <DashboardShell>
-        <div className="flex h-[50vh] items-center justify-center">
-          <div className="flex flex-col items-center gap-2">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600"></div>
-            <p className="text-sm text-muted-foreground">Loading dashboard...</p>
-          </div>
+      <div className="flex h-[50vh] items-center justify-center">
+        <div className="flex flex-col items-center gap-2">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600"></div>
+          <p className="text-sm text-muted-foreground">Loading dashboard...</p>
         </div>
-      </DashboardShell>
+      </div>
     )
   }
 
@@ -63,7 +60,7 @@ export default function DashboardPage() {
   const totalAmount = recentReceipts?.receipts?.reduce((sum, receipt) => sum + receipt.totalAmount, 0) || 0
 
   return (
-    <DashboardShell>
+    <>
       <DashboardHeader 
         heading={`Welcome, ${user?.firstName || userProfile?.name?.split(" ")[0] || "User"}`} 
         text="Manage your receipts and organization activities."
@@ -160,6 +157,6 @@ export default function DashboardPage() {
           <RecentActivity />
         </TabsContent>
       </Tabs>
-    </DashboardShell>
+    </>
   )
 }
