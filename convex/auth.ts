@@ -181,18 +181,21 @@ export const createOrganization = mutation({
  */
 export const getUserProfile = query({
   args: {},
-  returns: v.optional(v.object({
-    _id: v.id("users"),
-    name: v.string(),
-    email: v.string(),
-    role: v.string(),
-    organizationId: v.optional(v.id("organizations")),
-    organization: v.optional(v.object({
-      _id: v.id("organizations"),
+  returns: v.union(
+    v.null(),
+    v.object({
+      _id: v.id("users"),
       name: v.string(),
-      subscriptionTier: v.optional(v.string()),
-    })),
-  })),
+      email: v.string(),
+      role: v.string(),
+      organizationId: v.optional(v.id("organizations")),
+      organization: v.optional(v.object({
+        _id: v.id("organizations"),
+        name: v.string(),
+        subscriptionTier: v.optional(v.string()),
+      }))
+    })
+  ),
   handler: async (ctx) => {
     try {
       const identity = await ctx.auth.getUserIdentity();

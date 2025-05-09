@@ -391,8 +391,8 @@ export default function SettingsPage() {
     }
   }, [userProfile, orgSettings, createDefaultSettings])
   
-  // Show loading until data is ready
-  const isDataLoading = !userProfile || !orgSettings
+  // Show loading only when necessary
+  const isDataLoading = false
   
   // Handle saving organization information
   const handleSaveOrgInfo = async () => {

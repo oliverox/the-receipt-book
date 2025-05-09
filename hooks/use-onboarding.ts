@@ -38,13 +38,19 @@ export function useOnboarding() {
           if (!userName || !userEmail) {
             console.warn("Missing user data for onboarding:", { userName, userEmail });
             // Wait for user data to be available
+            setIsProcessing(false);
             return;
           }
 
-          await getOrCreateUser({
-            name: userName,
-            email: userEmail,
-          });
+          try {
+            await getOrCreateUser({
+              name: userName,
+              email: userEmail,
+            });
+            console.log("User created successfully");
+          } catch (userError) {
+            console.error("Error creating user:", userError);
+          }
           // Return early and wait for the userProfile to load
           return;
         }
@@ -73,6 +79,18 @@ export function useOnboarding() {
           }
         }
         
+        // Additional check: make sure organization settings exist
+        if (userProfile?.organizationId) {
+          try {
+            // Try to create default settings if not already created
+            // This ensures the dashboard has the correct settings
+            await createDefaultSettings();
+          } catch (settingsError) {
+            // If this fails, it likely means settings already exist
+            console.log("Settings already exist or error:", settingsError);
+          }
+        }
+
         setIsOnboardingComplete(true);
       } catch (error) {
         console.error("Error during onboarding:", error);

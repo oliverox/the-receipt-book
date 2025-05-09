@@ -44,8 +44,8 @@ export default function DashboardPage() {
     }
   }, [isLoaded, isSignedIn])
 
-  // Show loading until everything is ready
-  if (isInitializing || !userProfile || !orgSettings) {
+  // Show loading only when initializing
+  if (isInitializing) {
     return (
       <div className="flex h-[50vh] items-center justify-center">
         <div className="flex flex-col items-center gap-2">
@@ -55,6 +55,10 @@ export default function DashboardPage() {
       </div>
     )
   }
+
+  // Define default values to use when data is missing
+  const orgCurrency = orgSettings?.currencySettings?.symbol || "$";
+  const orgCurrencyCode = orgSettings?.currencySettings?.code || "USD";
 
   const totalReceipts = recentReceipts?.receipts?.length || 0
   const totalAmount = recentReceipts?.receipts?.reduce((sum, receipt) => sum + receipt.totalAmount, 0) || 0
@@ -90,10 +94,10 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {orgSettings.currencySettings?.symbol || "$"} {totalAmount.toLocaleString()}
+              {orgCurrency} {totalAmount.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
-              Total contributions ({orgSettings.currencySettings?.code || "USD"})
+              Total contributions ({orgCurrencyCode})
             </p>
           </CardContent>
         </Card>

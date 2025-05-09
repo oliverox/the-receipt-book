@@ -7,84 +7,92 @@ import { ConvexError } from "convex/values";
  */
 export const getOrganizationSettings = query({
   args: {},
-  returns: v.object({
-    _id: v.id("organizationSettings"),
-    emailSettings: v.optional(
-      v.object({
-        senderName: v.string(),
-        senderEmail: v.string(),
-        defaultSubject: v.string(),
-        defaultMessage: v.string(),
-      })
-    ),
-    contactInfo: v.optional(
-      v.object({
-        phone: v.optional(v.string()),
-        address: v.optional(v.string()),
-      })
-    ),
-    currencySettings: v.optional(
-      v.object({
-        code: v.string(),
-        symbol: v.string(),
-      })
-    ),
-    salesTaxSettings: v.optional(
-      v.object({
-        enabled: v.boolean(),
-        percentage: v.number(),
-        name: v.string(),
-      })
-    ),
-    whatsappIntegration: v.optional(
-      v.object({
-        enabled: v.boolean(),
-        apiKey: v.string(),
-      })
-    ),
-    receiptNumberingFormat: v.optional(v.string()),
-  }),
+  returns: v.union(
+    v.null(),
+    v.object({
+      _id: v.id("organizationSettings"),
+      emailSettings: v.optional(
+        v.object({
+          senderName: v.string(),
+          senderEmail: v.string(),
+          defaultSubject: v.string(),
+          defaultMessage: v.string(),
+        })
+      ),
+      contactInfo: v.optional(
+        v.object({
+          phone: v.optional(v.string()),
+          address: v.optional(v.string()),
+        })
+      ),
+      currencySettings: v.optional(
+        v.object({
+          code: v.string(),
+          symbol: v.string(),
+        })
+      ),
+      salesTaxSettings: v.optional(
+        v.object({
+          enabled: v.boolean(),
+          percentage: v.number(),
+          name: v.string(),
+        })
+      ),
+      whatsappIntegration: v.optional(
+        v.object({
+          enabled: v.boolean(),
+          apiKey: v.string(),
+        })
+      ),
+      receiptNumberingFormat: v.optional(v.string()),
+    })
+  ),
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new ConvexError("Not authenticated");
+    try {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        // Return null if not authenticated instead of throwing
+        return null;
+      }
+
+      // Get user
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+        .first();
+
+      if (!user || !user.organizationId) {
+        // Return null if user or organization not found
+        return null;
+      }
+
+      // Get settings
+      const settings = await ctx.db
+        .query("organizationSettings")
+        .withIndex("by_organization", (q) =>
+          q.eq("organizationId", user.organizationId)
+        )
+        .first();
+
+      if (!settings) {
+        // Return null if settings don't exist
+        // The client will handle this by calling createDefaultSettings
+        return null;
+      }
+
+      return {
+        _id: settings._id,
+        emailSettings: settings.emailSettings,
+        contactInfo: settings.contactInfo,
+        currencySettings: settings.currencySettings,
+        salesTaxSettings: settings.salesTaxSettings,
+        whatsappIntegration: settings.whatsappIntegration,
+        receiptNumberingFormat: settings.receiptNumberingFormat,
+      };
+    } catch (error) {
+      console.error("Error in getOrganizationSettings:", error);
+      return null;
     }
-
-    // Get user
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-      .unique();
-
-    if (!user || !user.organizationId) {
-      throw new ConvexError("User or organization not found");
-    }
-
-    // Get settings
-    const settings = await ctx.db
-      .query("organizationSettings")
-      .withIndex("by_organization", (q) => 
-        q.eq("organizationId", user.organizationId)
-      )
-      .unique();
-
-    if (!settings) {
-      // If settings don't exist, we can't create them in a query
-      // We'll return a friendly error message
-      throw new ConvexError(
-        "Organization settings not found. Please reload the page or contact support."
-      );
-    }
-
-    return {
-      _id: settings._id,
-      emailSettings: settings.emailSettings,
-      contactInfo: settings.contactInfo,
-      currencySettings: settings.currencySettings,
-      salesTaxSettings: settings.salesTaxSettings,
-      whatsappIntegration: settings.whatsappIntegration,
-      receiptNumberingFormat: settings.receiptNumberingFormat,
-    };
   },
 });
 
