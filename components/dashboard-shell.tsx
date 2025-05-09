@@ -21,19 +21,19 @@ export function DashboardShell({ children }: DashboardShellProps) {
   
   return (
     <div className="flex min-h-screen flex-col">
-      <SidebarProvider>
+      <SidebarProvider defaultOpen={true}>
         <div className="flex h-screen w-full">
-          <DashboardSidebar>
+          <DashboardSidebar collapsible="icon">
             <SidebarHeader className="border-b px-4 py-2">
-              <div className="flex items-center gap-3 h-8">
+              <div className="flex items-center gap-3 h-8 group-data-[state=collapsed]:justify-center">
                 <Image
                   src="/logo.png"
                   alt="Digital Receipt Pro Logo"
-                  width={20}
-                  height={20}
-                  className="h-6 w-auto"
+                  width={24}
+                  height={24}
+                  className="h-6 w-auto object-contain group-data-[state=collapsed]:h-6 group-data-[state=collapsed]:w-6"
                 />
-                <span className="font-bold">Digital Receipt Pro</span>
+                <span className="font-bold group-data-[state=collapsed]:hidden">Digital Receipt Pro</span>
               </div>
             </SidebarHeader>
           </DashboardSidebar>
