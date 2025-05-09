@@ -6,10 +6,12 @@ import { FileText, Home, Settings, Users, UserPlus } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { version } from "@/lib/version"
 
 interface DashboardSidebarProps {
   children?: React.ReactNode
@@ -25,7 +27,7 @@ export function DashboardSidebar({ children }: DashboardSidebarProps) {
         <SidebarMenu>
           <SidebarMenuItem>
             <Link href="/dashboard" className="w-full">
-              <SidebarMenuButton 
+              <SidebarMenuButton
                 isActive={pathname === "/dashboard"}
                 tooltip="Dashboard"
               >
@@ -36,7 +38,7 @@ export function DashboardSidebar({ children }: DashboardSidebarProps) {
           </SidebarMenuItem>
           <SidebarMenuItem>
             <Link href="/receipts" className="w-full">
-              <SidebarMenuButton 
+              <SidebarMenuButton
                 isActive={pathname.includes("/receipts")}
                 tooltip="Receipts"
               >
@@ -47,7 +49,7 @@ export function DashboardSidebar({ children }: DashboardSidebarProps) {
           </SidebarMenuItem>
           <SidebarMenuItem>
             <Link href="/contacts" className="w-full">
-              <SidebarMenuButton 
+              <SidebarMenuButton
                 isActive={pathname.includes("/contacts")}
                 tooltip="Contacts"
               >
@@ -58,7 +60,7 @@ export function DashboardSidebar({ children }: DashboardSidebarProps) {
           </SidebarMenuItem>
           <SidebarMenuItem>
             <Link href="/team" className="w-full">
-              <SidebarMenuButton 
+              <SidebarMenuButton
                 isActive={pathname === "/team"}
                 tooltip="Team"
               >
@@ -69,7 +71,7 @@ export function DashboardSidebar({ children }: DashboardSidebarProps) {
           </SidebarMenuItem>
           <SidebarMenuItem>
             <Link href="/settings" className="w-full">
-              <SidebarMenuButton 
+              <SidebarMenuButton
                 isActive={pathname === "/settings"}
                 tooltip="Settings"
               >
@@ -80,6 +82,11 @@ export function DashboardSidebar({ children }: DashboardSidebarProps) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
+      <SidebarFooter className="mt-auto p-3">
+        <div className="text-sidebar-foreground/40 text-[10px] text-center">
+          v{version}
+        </div>
+      </SidebarFooter>
     </Sidebar>
   )
 }
