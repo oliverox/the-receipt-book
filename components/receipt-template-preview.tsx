@@ -65,7 +65,7 @@ export function ReceiptTemplatePreview({ template }: ReceiptTemplatePreviewProps
             <table className="w-full text-sm">
               <thead className="bg-slate-50">
                 <tr>
-                  <th className="px-4 py-2 text-left font-medium">Fund Category</th>
+                  <th className="px-4 py-2 text-left font-medium">Category</th>
                   <th className="px-4 py-2 text-right font-medium">Amount</th>
                 </tr>
               </thead>
@@ -127,11 +127,11 @@ export function ReceiptTemplatePreview({ template }: ReceiptTemplatePreviewProps
         </div>
 
         <div className="mb-6">
-          <h3 className="font-medium mb-2 pb-1 border-b">Fund Contributions</h3>
+          <h3 className="font-medium mb-2 pb-1 border-b">Categories</h3>
           <table className="w-full text-sm">
             <thead>
               <tr>
-                <th className="py-2 text-left font-medium">Fund Category</th>
+                <th className="py-2 text-left font-medium">Category</th>
                 <th className="py-2 text-right font-medium">Amount</th>
               </tr>
             </thead>

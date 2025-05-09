@@ -116,6 +116,8 @@ export default defineSchema({
       apiKey: v.string(),
     })),
     receiptNumberingFormat: v.optional(v.string()), // Format for receipt IDs (e.g., "ORG-{YEAR}-{NUMBER}")
+    receiptPrefix: v.optional(v.string()), // Custom prefix for receipt numbers
+    defaultReceiptTypeId: v.optional(v.id("receiptTypes")), // Default receipt type to use when creating new receipts
     updatedBy: v.id("users"),
     updatedAt: v.number(), // Timestamp
   }).index("by_organization", ["organizationId"]),

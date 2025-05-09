@@ -1,36 +1,76 @@
-import Link from "next/link"
-import { ArrowRight, CheckCircle, FileText, Settings, Users } from "lucide-react"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { ParticlesBackground } from "@/components/particles-background"
+import Link from "next/link";
+import Image from "next/image";
+import {
+  ArrowRight,
+  CheckCircle,
+  FileText,
+  Settings,
+  Users,
+  LayoutDashboard,
+} from "lucide-react";
+import { useAuth } from "@clerk/nextjs";
+
+import { Button } from "@/components/ui/button";
+import { ParticlesBackground } from "@/components/particles-background";
 
 export default function LandingPage() {
+  const { isSignedIn } = useAuth();
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="Digital Receipt Pro Logo" className="h-8 w-auto" />
+            <Image
+              src="/logo.png"
+              alt="Digital Receipt Pro Logo"
+              width={486}
+              height={569}
+              className="h-8 w-auto"
+            />
             <span className="text-xl font-bold">Digital Receipt Pro</span>
           </div>
           <nav className="hidden md:flex gap-6">
-            <Link href="#features" className="text-sm font-medium hover:text-emerald-600 transition-colors">
+            <Link
+              href="#features"
+              className="text-sm font-medium hover:text-emerald-600 transition-colors"
+            >
               Features
             </Link>
-            <Link href="#how-it-works" className="text-sm font-medium hover:text-emerald-600 transition-colors">
+            <Link
+              href="#how-it-works"
+              className="text-sm font-medium hover:text-emerald-600 transition-colors"
+            >
               How It Works
             </Link>
-            <Link href="#pricing" className="text-sm font-medium hover:text-emerald-600 transition-colors">
+            <Link
+              href="#pricing"
+              className="text-sm font-medium hover:text-emerald-600 transition-colors"
+            >
               Pricing
             </Link>
           </nav>
           <div className="flex items-center gap-4">
-            <Link href="/sign-in">
-              <Button variant="outline">Log In</Button>
-            </Link>
-            <Link href="/sign-up">
-              <Button className="bg-emerald-600 hover:bg-emerald-700">Sign Up</Button>
-            </Link>
+            {isSignedIn ? (
+              <Link href="/dashboard">
+                <Button className="bg-emerald-600 hover:bg-emerald-700">
+                  <LayoutDashboard className="mr-2 h-4 w-4" />
+                  Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link href="/sign-in">
+                  <Button variant="outline">Log In</Button>
+                </Link>
+                <Link href="/sign-up">
+                  <Button className="bg-emerald-600 hover:bg-emerald-700">
+                    Sign Up
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -39,21 +79,36 @@ export default function LandingPage() {
           <div className="absolute inset-0 z-0">
             <ParticlesBackground className="w-full h-full" />
           </div>
-          {/* <div className="absolute inset-0 z-[1] bg-gradient-to-b from-slate-900/70 to-slate-900/90"></div> */}
           <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 flex flex-col items-center text-center relative z-[2]">
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
               <span className="text-emerald-600">Digital Receipt Pro</span>
             </h1>
             <p className="mt-6 max-w-3xl text-lg md:text-xl text-gray-500">
-              Streamline your business with professional digital receipts — create, send, and track instantly with one click.
+              Streamline your business with professional digital receipts —
+              create, send, and track instantly with one click.
             </p>
             <div className="mt-10 flex flex-col sm:flex-row gap-4">
-              <Link href="/sign-up">
-                <Button size="lg" className="bg-emerald-600 hover:bg-emerald-700">
-                  Get Started
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
+              {isSignedIn ? (
+                <Link href="/dashboard">
+                  <Button
+                    size="lg"
+                    className="bg-emerald-600 hover:bg-emerald-700"
+                  >
+                    Go to Dashboard
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              ) : (
+                <Link href="/sign-up">
+                  <Button
+                    size="lg"
+                    className="bg-emerald-600 hover:bg-emerald-700"
+                  >
+                    Get Started
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              )}
               <Link href="#how-it-works">
                 <Button size="lg" variant="outline">
                   Learn More
@@ -65,36 +120,55 @@ export default function LandingPage() {
 
         <section id="features" className="py-20 bg-slate-50 dark:bg-slate-900">
           <div className="mx-auto max-w-7xl w-full px-4 sm:px-6">
-            <h2 className="text-3xl font-bold text-center mb-12">Key Features</h2>
+            <h2 className="text-3xl font-bold text-center mb-12">
+              Key Features
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm">
                 <FileText className="h-10 w-10 text-emerald-600 mb-4" />
-                <h3 className="text-xl font-bold mb-2">Instant Digital Delivery</h3>
+                <h3 className="text-xl font-bold mb-2">
+                  Instant Digital Delivery
+                </h3>
                 <p className="text-muted-foreground">
-                  Create and email professional digital receipts instantly with a single click. Your customers receive beautifully formatted receipts in seconds.
+                  Create and email professional digital receipts instantly with
+                  a single click. Your customers receive beautifully formatted
+                  receipts in seconds.
                 </p>
               </div>
               <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm">
                 <Users className="h-10 w-10 text-emerald-600 mb-4" />
-                <h3 className="text-xl font-bold mb-2">Professional Templates</h3>
+                <h3 className="text-xl font-bold mb-2">
+                  Professional Templates
+                </h3>
                 <p className="text-muted-foreground">
-                  Comprehensive selection of business receipt templates with automatic tax calculation, custom branding, and itemized details.
+                  Comprehensive selection of business receipt templates with
+                  automatic tax calculation, custom branding, and itemized
+                  details.
                 </p>
               </div>
               <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm">
                 <Settings className="h-10 w-10 text-emerald-600 mb-4" />
                 <h3 className="text-xl font-bold mb-2">Customer Management</h3>
                 <p className="text-muted-foreground">
-                  Track customer purchase history, manage business relationships, and maintain complete records of all transactions in one secure place.
+                  Track customer purchase history, manage business
+                  relationships, and maintain complete records of all
+                  transactions in one secure place.
                 </p>
               </div>
               <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm">
-                <svg className="h-10 w-10 text-emerald-600 mb-4" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <svg
+                  className="h-10 w-10 text-emerald-600 mb-4"
+                  fill="currentColor"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                >
                   <path d="M5 21h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2zM5 5h3.5v14H5V5zm5 0h3.5v14H10V5zm5 0h4v14h-4V5z" />
                 </svg>
                 <h3 className="text-xl font-bold mb-2">Business Analytics</h3>
                 <p className="text-muted-foreground">
-                  Track sales trends, monitor financial activity, and gain valuable business insights with built-in reporting and visualization tools.
+                  Track sales trends, monitor financial activity, and gain
+                  valuable business insights with built-in reporting and
+                  visualization tools.
                 </p>
               </div>
             </div>
@@ -103,35 +177,45 @@ export default function LandingPage() {
 
         <section id="how-it-works" className="py-20">
           <div className="mx-auto max-w-7xl w-full px-4 sm:px-6">
-            <h2 className="text-3xl font-bold text-center mb-12">How It Works</h2>
+            <h2 className="text-3xl font-bold text-center mb-12">
+              How It Works
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               <div className="flex flex-col items-center text-center">
                 <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
                   <span className="text-emerald-600 font-bold">1</span>
                 </div>
                 <h3 className="text-lg font-bold mb-2">Sign Up</h3>
-                <p className="text-muted-foreground">Create your business account in seconds</p>
+                <p className="text-muted-foreground">
+                  Create your business account in seconds
+                </p>
               </div>
               <div className="flex flex-col items-center text-center">
                 <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
                   <span className="text-emerald-600 font-bold">2</span>
                 </div>
                 <h3 className="text-lg font-bold mb-2">Customize</h3>
-                <p className="text-muted-foreground">Set up your business branding and receipt templates</p>
+                <p className="text-muted-foreground">
+                  Set up your business branding and receipt templates
+                </p>
               </div>
               <div className="flex flex-col items-center text-center">
                 <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
                   <span className="text-emerald-600 font-bold">3</span>
                 </div>
                 <h3 className="text-lg font-bold mb-2">Create Receipts</h3>
-                <p className="text-muted-foreground">Generate professional receipts for any transaction</p>
+                <p className="text-muted-foreground">
+                  Generate professional receipts for any transaction
+                </p>
               </div>
               <div className="flex flex-col items-center text-center">
                 <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
                   <span className="text-emerald-600 font-bold">4</span>
                 </div>
                 <h3 className="text-lg font-bold mb-2">Deliver Instantly</h3>
-                <p className="text-muted-foreground">Email digital receipts to customers with one click</p>
+                <p className="text-muted-foreground">
+                  Email digital receipts to customers with one click
+                </p>
               </div>
             </div>
           </div>
@@ -139,12 +223,17 @@ export default function LandingPage() {
 
         <section id="pricing" className="py-20 bg-slate-50 dark:bg-slate-900">
           <div className="mx-auto max-w-7xl w-full px-4 sm:px-6">
-            <h2 className="text-3xl font-bold text-center mb-12">Simple Pricing</h2>
+            <h2 className="text-3xl font-bold text-center mb-12">
+              Simple Pricing
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
               <div className="bg-white dark:bg-slate-800 p-8 rounded-lg shadow-sm">
                 <h3 className="text-xl font-bold mb-2">Starter</h3>
                 <p className="text-3xl font-bold mb-4">
-                  $29<span className="text-base font-normal text-muted-foreground">/month</span>
+                  $29
+                  <span className="text-base font-normal text-muted-foreground">
+                    /month
+                  </span>
                 </p>
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-center">
@@ -160,7 +249,12 @@ export default function LandingPage() {
                     <span>Standard receipt templates</span>
                   </li>
                 </ul>
-                <Button className="w-full bg-emerald-600 hover:bg-emerald-700">Get Started</Button>
+                <Button
+                  className="w-full bg-emerald-600 hover:bg-emerald-700"
+                  onClick={() => window.location.href = isSignedIn ? '/dashboard' : '/sign-up'}
+                >
+                  {isSignedIn ? 'Go to Dashboard' : 'Get Started'}
+                </Button>
               </div>
               <div className="bg-emerald-50 dark:bg-emerald-900/20 p-8 rounded-lg shadow-sm border-2 border-emerald-600 relative">
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-emerald-600 text-white px-4 py-1 rounded-full text-sm font-medium">
@@ -168,7 +262,10 @@ export default function LandingPage() {
                 </div>
                 <h3 className="text-xl font-bold mb-2">Professional</h3>
                 <p className="text-3xl font-bold mb-4">
-                  $59<span className="text-base font-normal text-muted-foreground">/month</span>
+                  $59
+                  <span className="text-base font-normal text-muted-foreground">
+                    /month
+                  </span>
                 </p>
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-center">
@@ -188,12 +285,20 @@ export default function LandingPage() {
                     <span>Email & WhatsApp integration</span>
                   </li>
                 </ul>
-                <Button className="w-full bg-emerald-600 hover:bg-emerald-700">Get Started</Button>
+                <Button
+                  className="w-full bg-emerald-600 hover:bg-emerald-700"
+                  onClick={() => window.location.href = isSignedIn ? '/dashboard' : '/sign-up'}
+                >
+                  {isSignedIn ? 'Go to Dashboard' : 'Get Started'}
+                </Button>
               </div>
               <div className="bg-white dark:bg-slate-800 p-8 rounded-lg shadow-sm">
                 <h3 className="text-xl font-bold mb-2">Enterprise</h3>
                 <p className="text-3xl font-bold mb-4">
-                  $99<span className="text-base font-normal text-muted-foreground">/month</span>
+                  $99
+                  <span className="text-base font-normal text-muted-foreground">
+                    /month
+                  </span>
                 </p>
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-center">
@@ -213,7 +318,12 @@ export default function LandingPage() {
                     <span>Priority support</span>
                   </li>
                 </ul>
-                <Button className="w-full bg-emerald-600 hover:bg-emerald-700">Contact Sales</Button>
+                <Button
+                  className="w-full bg-emerald-600 hover:bg-emerald-700"
+                  onClick={() => window.location.href = isSignedIn ? '/dashboard' : '/sign-up'}
+                >
+                  {isSignedIn ? 'Go to Dashboard' : 'Contact Sales'}
+                </Button>
               </div>
             </div>
           </div>
@@ -222,7 +332,13 @@ export default function LandingPage() {
       <footer className="border-t py-10">
         <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center">
           <div className="flex items-center gap-2 mb-4 md:mb-0">
-            <img src="/logo.png" alt="Digital Receipt Pro Logo" className="h-8 w-auto" />
+            <Image
+              src="/logo.png"
+              alt="Digital Receipt Pro Logo"
+              width={486}
+              height={569}
+              className="h-8 w-auto"
+            />
             <span className="text-xl font-bold">Digital Receipt Pro</span>
           </div>
           <div className="text-center md:text-right text-sm text-muted-foreground">
@@ -240,5 +356,5 @@ export default function LandingPage() {
         </div>
       </footer>
     </div>
-  )
+  );
 }

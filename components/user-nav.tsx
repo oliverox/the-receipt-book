@@ -45,7 +45,7 @@ export function UserNav() {
   const userName = user?.fullName || userProfile?.name || "User"
   
   // Get avatar image
-  const avatarUrl = user?.imageUrl || ""
+  const avatarUrl = user?.imageUrl || undefined
   
   // Handle logout
   const handleLogout = () => {

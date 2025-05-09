@@ -182,7 +182,7 @@ export function ReceiptDetailClient({ receiptId }: ReceiptDetailClientProps) {
                 </div>
                 <div>
                   <p className="text-xs sm:text-sm font-medium text-muted-foreground">Total Amount</p>
-                  <p className="text-sm sm:text-base font-bold">{receipt.currency || currencySymbol} {formattedReceipt.total.toLocaleString()}</p>
+                  <p className="text-sm sm:text-base font-bold">{receipt.currency || currencySymbol} {formattedReceipt.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 </div>
               </div>
 
@@ -205,7 +205,7 @@ export function ReceiptDetailClient({ receiptId }: ReceiptDetailClientProps) {
               <div>
                 <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-2">
                   {formattedReceipt.receiptType === "Donation"
-                    ? "Fund Contributions"
+                    ? "Categories"
                     : formattedReceipt.receiptType === "Sales"
                       ? "Items"
                       : "Services"}
@@ -229,19 +229,19 @@ export function ReceiptDetailClient({ receiptId }: ReceiptDetailClientProps) {
                           <div className="hidden sm:grid sm:grid-cols-4 gap-2 text-sm">
                             <p>{item.name || item.category}</p>
                             <p className="text-right">{item.quantity || 1}</p>
-                            <p className="text-right">{receipt.currency || currencySymbol} {item.unitPrice?.toLocaleString() || (item.amount / (item.quantity || 1)).toLocaleString()}</p>
-                            <p className="text-right">{receipt.currency || currencySymbol} {item.amount.toLocaleString()}</p>
+                            <p className="text-right">{receipt.currency || currencySymbol} {item.unitPrice?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || (item.amount / (item.quantity || 1)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                            <p className="text-right">{receipt.currency || currencySymbol} {item.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                           </div>
 
                           {/* Mobile view - card layout */}
                           <div className="sm:hidden border rounded-md p-2 mb-2 text-sm">
                             <div className="flex justify-between">
                               <p className="font-medium">{item.name || item.category}</p>
-                              <p className="font-medium">{receipt.currency || currencySymbol} {item.amount.toLocaleString()}</p>
+                              <p className="font-medium">{receipt.currency || currencySymbol} {item.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                             </div>
                             <div className="flex justify-between text-xs text-muted-foreground mt-1">
                               <p>Qty: {item.quantity || 1}</p>
-                              <p>Unit: {receipt.currency || currencySymbol} {item.unitPrice?.toLocaleString() || (item.amount / (item.quantity || 1)).toLocaleString()}</p>
+                              <p>Unit: {receipt.currency || currencySymbol} {item.unitPrice?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || (item.amount / (item.quantity || 1)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                             </div>
                           </div>
                         </div>
@@ -252,14 +252,14 @@ export function ReceiptDetailClient({ receiptId }: ReceiptDetailClientProps) {
                     formattedReceipt.items.map((item, index) => (
                       <div key={index} className="flex justify-between text-sm sm:text-base">
                         <p>{item.name || item.category}</p>
-                        <p>{receipt.currency || currencySymbol} {item.amount.toLocaleString()}</p>
+                        <p>{receipt.currency || currencySymbol} {item.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                       </div>
                     ))
                   )}
                   <Separator />
                   <div className="flex justify-between font-bold text-sm sm:text-base">
                     <p>Total</p>
-                    <p>{receipt.currency || currencySymbol} {formattedReceipt.total.toLocaleString()}</p>
+                    <p>{receipt.currency || currencySymbol} {formattedReceipt.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                   </div>
                 </div>
               </div>

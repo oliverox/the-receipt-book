@@ -69,6 +69,7 @@ export interface CreateReceiptData {
   recipientName: string;
   recipientEmail?: string;
   recipientPhone?: string;
+  address?: string; // Added address field for contact creation
   contactId?: Id<"contacts">;
   totalAmount: number;
   currency: string;
@@ -167,6 +168,8 @@ export interface OrganizationSettings {
     apiKey: string;
   };
   receiptNumberingFormat?: string;
+  receiptPrefix?: string;
+  defaultReceiptTypeId?: string;
 }
 
 /**

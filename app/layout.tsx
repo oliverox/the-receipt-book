@@ -18,12 +18,6 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Digital Receipt Pro - Professional Receipt Management",
   description: "Streamline your business with professional digital receipts — create, send, and track instantly",
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -42,8 +36,15 @@ export const metadata: Metadata = {
       },
     ],
   },
-  themeColor: "#10b981", // Emerald-600 color for theme color
   manifest: "/site.webmanifest",
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: "#10b981", // Emerald-600 color for theme color
 };
 
 export default function RootLayout({

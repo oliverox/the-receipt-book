@@ -28,19 +28,23 @@ const generateReceiptId = async (ctx: any, organizationId: string, receiptType: 
 
   // Generate receipt ID with format
   let format = settings?.receiptNumberingFormat || "{PREFIX}-{YEAR}-{NUMBER}";
-  
-  // Default prefix (if not found in format)
+
+  // Always prioritize the user-defined receipt prefix from settings
+  // Only fall back to receipt type-based prefixes if no prefix is set in settings
   let prefix = "RCP";
-  
-  // If receipt type is available, use the first 3 letters of type name as prefix
-  if (receiptType) {
+
+  if (settings?.receiptPrefix) {
+    // Use the user-defined prefix from settings if available
+    prefix = settings.receiptPrefix;
+  } else if (receiptType) {
+    // Fall back to using the first 3 letters of receipt type name
     prefix = receiptType.name.substring(0, 3).toUpperCase();
   }
-  
+
   const year = new Date().getFullYear();
   const paddedCounter = newCounter.toString().padStart(4, "0");
   const month = (new Date().getMonth() + 1).toString().padStart(2, "0");
-  
+
   // Replace placeholders
   return format
     .replace("{PREFIX}", prefix)
@@ -162,6 +166,7 @@ const findOrCreateContact = async (ctx: any, user: any, recipientData: any) => {
     name: recipientData.recipientName,
     email: recipientData.recipientEmail,
     phone: recipientData.recipientPhone,
+    address: recipientData.address, // Include address if provided
     contactTypeId: individualContactType._id,
     organizationId: user.organizationId,
     totalContributions: 0, // Will be updated when receipt is saved
@@ -209,6 +214,7 @@ export const createReceipt = mutation({
     recipientName: v.string(),
     recipientEmail: v.optional(v.string()),
     recipientPhone: v.optional(v.string()),
+    address: v.optional(v.string()), // Added address field for contact creation
     contactId: v.optional(v.id("contacts")), // Optional - can be provided if contact is known
     totalAmount: v.number(),
     currency: v.string(),

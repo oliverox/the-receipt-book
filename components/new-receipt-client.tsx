@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Eye, Plus, Trash, User, X } from "lucide-react"
@@ -72,15 +72,17 @@ export function NewReceiptClient() {
     searchQuery.length > 1 ? { search: searchQuery, limit: 5 } : "skip"
   ) || []
 
-  // Get organization settings for currency
+  // Get organization settings for currency and default receipt type
   const orgSettings = useQuery(api.settings.getOrganizationSettings)
   
   // Get receipt types from the database
-  const receiptTypes = useQuery(api.receiptTypes.listReceiptTypes) || []
+  const receiptTypesResult = useQuery(api.receiptTypes.listReceiptTypes)
+  // Memoize receipt types to avoid dependency changes on every render
+  const receiptTypes = useMemo(() => receiptTypesResult || [], [receiptTypesResult])
   
   // Initialize receipt types if none exist
   const initializeReceiptTypes = useMutation(api.receiptTypes.initializeDefaultReceiptTypes)
-  
+
   // Check if we need to initialize receipt types
   useEffect(() => {
     if (receiptTypes.length === 0) {
@@ -91,6 +93,58 @@ export function NewReceiptClient() {
         })
     }
   }, [receiptTypes.length, initializeReceiptTypes])
+
+  // Handle receipt type selection - wrapped in useCallback to avoid dependency changes
+  const handleReceiptTypeChange = useCallback((receiptTypeId: string): void => {
+    const receiptType = receiptTypes.find((type: { _id: string; name: string }) => type._id === receiptTypeId)
+    if (receiptType) {
+      setSelectedReceiptType(receiptType)
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        receiptTypeId: receiptTypeId
+      }))
+
+      // Reset receipt items when type changes
+      setReceiptItems([{
+        id: "1",
+        categoryId: "",
+        categoryName: "",
+        amount: "",
+        searchQuery: ""
+      }])
+
+      // Reset template selection - we'll set it when templates load
+      setSelectedTemplateId("")
+    }
+  }, [receiptTypes])
+
+  // Set the default receipt type from organization settings if available
+  useEffect(() => {
+    if (orgSettings?.defaultReceiptTypeId && receiptTypes.length > 0 && !selectedReceiptType) {
+      const defaultType = receiptTypes.find((type: { _id: string; name: string }) => type._id === orgSettings.defaultReceiptTypeId)
+      if (defaultType) {
+        handleReceiptTypeChange(defaultType._id)
+      }
+    }
+  }, [orgSettings, receiptTypes, selectedReceiptType, handleReceiptTypeChange])
+
+  // Get current user for organization ID
+  const currentUser = useQuery(api.auth.getUserProfile);
+
+  // Get contact types for contact creation
+  const contactTypes = useQuery(api.contacts.listContactTypes) || []
+  const createContact = useMutation(api.contacts.createContact)
+  const createDefaultContactTypes = useMutation(api.contacts.createDefaultContactTypes)
+
+  // Check if we need to initialize contact types
+  useEffect(() => {
+    if (contactTypes.length === 0 && currentUser && currentUser.organizationId) {
+      createDefaultContactTypes({ organizationId: currentUser.organizationId })
+        .catch(error => {
+          console.error("Failed to initialize contact types:", error)
+        });
+    }
+  }, [contactTypes.length, createDefaultContactTypes, currentUser])
   
   // Get item categories based on selected receipt type
   const itemCategories = useQuery(
@@ -156,7 +210,9 @@ export function NewReceiptClient() {
   
   // Create item category mutation
   const createItemCategory = useMutation(api.itemCategories.createItemCategory)
-  
+
+  // This is an empty block - we'll delete this duplicate declaration
+
   // Receipt type creation is handled elsewhere
   
   // Default currency symbol and code
@@ -184,6 +240,72 @@ export function NewReceiptClient() {
     setSelectedContact(null)
     // Keep the form data as is
   }
+
+  // Create a new contact if it doesn't exist
+  const handleCreateContact = async (): Promise<void> => {
+    if (!formData.contributorName) return;
+
+    try {
+      // Get default contact type (individual)
+      let individualContactType = contactTypes.find(type => type.name === "Individual");
+      if (!individualContactType) {
+        // If no default contact type found, just use the first one available
+        if (contactTypes.length > 0) {
+          individualContactType = contactTypes[0];
+        } else {
+          throw new Error("No contact types available. Please create a contact type first.");
+        }
+      }
+
+      // Create the contact
+      const result = await createContact({
+        name: formData.contributorName,
+        email: formData.email || undefined,
+        phone: formData.phone || undefined,
+        address: formData.address || undefined,
+        contactTypeId: individualContactType._id as Id<"contactTypes">,
+        notes: `Created from receipt form`
+      });
+
+      if (result.contactId) {
+        // Create a simplified contact object with the data we have
+        const newContact: Contact = {
+          _id: result.contactId,
+          name: formData.contributorName,
+          email: formData.email || undefined,
+          phone: formData.phone || undefined,
+          address: formData.address || undefined,
+          contactType: {
+            _id: individualContactType._id,
+            name: individualContactType.name
+          }
+        };
+
+        // Update selected contact
+        setSelectedContact(newContact);
+        setIsContactPopoverOpen(false);
+
+        toast({
+          title: "Contact created",
+          description: `Created new contact: ${formData.contributorName}`,
+        });
+      } else {
+        // Handle case where contactId is not returned
+        toast({
+          title: "Error creating contact",
+          description: "Failed to create contact - no ID returned",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Something went wrong";
+      toast({
+        title: "Error creating contact",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    }
+  };
 
   const addReceiptItem = (): void => {
     const newId = String(receiptItems.length + 1)
@@ -280,29 +402,6 @@ export function NewReceiptClient() {
     }
   }
   
-  // Handle receipt type selection
-  const handleReceiptTypeChange = (receiptTypeId: string): void => {
-    const receiptType = receiptTypes.find((type: { _id: string; name: string }) => type._id === receiptTypeId)
-    if (receiptType) {
-      setSelectedReceiptType(receiptType)
-      setFormData({
-        ...formData,
-        receiptTypeId: receiptTypeId
-      })
-      
-      // Reset receipt items when type changes
-      setReceiptItems([{ 
-        id: "1", 
-        categoryId: "", 
-        categoryName: "", 
-        amount: "",
-        searchQuery: "" 
-      }])
-      
-      // Reset template selection - we'll set it when templates load
-      setSelectedTemplateId("")
-    }
-  }
   
   // Select default template when templates load
   useEffect(() => {
@@ -429,6 +528,43 @@ export function NewReceiptClient() {
         }
       }
 
+      // Create contact if needed (similar to how we create categories)
+      let contactId = selectedContact?._id as Id<"contacts"> | undefined;
+      if (!selectedContact && formData.contributorName) {
+        try {
+          // Get default contact type (individual)
+          let individualContactType = contactTypes.find(type => type.name === "Individual");
+          if (!individualContactType) {
+            // If no default contact type found, just use the first one available
+            if (contactTypes.length > 0) {
+              individualContactType = contactTypes[0];
+            } else {
+              throw new Error("No contact types available. Please create a contact type first.");
+            }
+          }
+
+          // Create the contact
+          const result = await createContact({
+            name: formData.contributorName,
+            email: formData.email || undefined,
+            phone: formData.phone || undefined,
+            address: formData.address || undefined,
+            contactTypeId: individualContactType._id as Id<"contactTypes">,
+            notes: `Created automatically when creating receipt`
+          });
+
+          if (result.contactId) {
+            contactId = result.contactId as Id<"contacts">;
+          } else {
+            throw new Error("Failed to create contact");
+          }
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : "Unknown error";
+          console.error("Error creating contact:", errorMessage);
+          throw new Error(`Failed to create contact: ${formData.contributorName}`);
+        }
+      }
+
       // Prepare data for API call
       const receiptData: CreateReceiptData = {
         templateId: selectedTemplateId as Id<"receiptTemplates">,
@@ -436,7 +572,10 @@ export function NewReceiptClient() {
         recipientName: formData.contributorName,
         recipientEmail: formData.email || undefined,
         recipientPhone: formData.phone || undefined,
-        contactId: selectedContact?._id as unknown as Id<"contacts">,
+        // Now use the contact ID we just created or the one that was selected
+        ...(contactId ? { contactId } : {}),
+        // Only include address if we somehow don't have a contact ID, as a fallback
+        ...(!contactId && formData.address ? { address: formData.address } : {}),
         totalAmount: calculateRawTotal(),
         currency: currencyCode,
         date: new Date(formData.receiptDate).getTime(),
@@ -471,10 +610,20 @@ export function NewReceiptClient() {
       // Call the API to create the receipt
       await createReceipt(receiptData)
 
+      // Show success notification
       toast({
         title: "Receipt created",
         description: "The receipt has been created successfully.",
       })
+
+      // Show a success message for the newly created contact
+      if (contactId && !selectedContact) {
+        toast({
+          title: "Contact created",
+          description: `New contact "${formData.contributorName}" was created.`,
+          variant: "default"
+        })
+      }
       
       // Navigate to the receipts list
       router.push("/receipts")
@@ -510,53 +659,58 @@ export function NewReceiptClient() {
         <Card>
           <CardContent className="pt-6">
             <div className="space-y-4">
-              {/* Receipt Type Selection */}
-              <div className="space-y-2">
-                <Label htmlFor="receiptType">Receipt Type</Label>
-                <Select 
-                  onValueChange={handleReceiptTypeChange} 
-                  value={selectedReceiptType?._id || ""}
-                  required
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select receipt type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {receiptTypes.map((type: { _id: string; name: string }) => (
-                      <SelectItem key={type._id} value={type._id}>
-                        {type.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {selectedReceiptType?.description && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {selectedReceiptType.description}
-                  </p>
-                )}
-              </div>
-              
-              {/* Template selection - only show when receipt type is selected */}
-              {selectedReceiptType && (
-                <div className="space-y-2">
-                  <Label htmlFor="templateId">Receipt Template</Label>
-                  <Select 
-                    onValueChange={setSelectedTemplateId} 
-                    value={selectedTemplateId}
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select receipt template" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {receiptTemplates.map((template) => (
-                        <SelectItem key={template._id} value={template._id}>
-                          {template.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              {/* Receipt Type and Template Selection - only show when no default receipt type is set */}
+              {!orgSettings?.defaultReceiptTypeId && (
+                <>
+                  {/* Receipt Type Selection */}
+                  <div className="space-y-2">
+                    <Label htmlFor="receiptType">Receipt Type</Label>
+                    <Select
+                      onValueChange={handleReceiptTypeChange}
+                      value={selectedReceiptType?._id || ""}
+                      required
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select receipt type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {receiptTypes.map((type: { _id: string; name: string }) => (
+                          <SelectItem key={type._id} value={type._id}>
+                            {type.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {selectedReceiptType?.description && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {selectedReceiptType.description}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Template selection - only show when receipt type is selected */}
+                  {selectedReceiptType && (
+                    <div className="space-y-2">
+                      <Label htmlFor="templateId">Receipt Template</Label>
+                      <Select
+                        onValueChange={setSelectedTemplateId}
+                        value={selectedTemplateId}
+                        required
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select receipt template" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {receiptTemplates.map((template) => (
+                            <SelectItem key={template._id} value={template._id}>
+                              {template.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </>
               )}
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -566,10 +720,10 @@ export function NewReceiptClient() {
                     <Popover open={isContactPopoverOpen} onOpenChange={setIsContactPopoverOpen}>
                       <PopoverTrigger asChild>
                         <div className="flex items-center">
-                          <Input 
-                            id="contributorName" 
-                            placeholder="Search existing or enter new recipient" 
-                            required 
+                          <Input
+                            id="contributorName"
+                            placeholder="Search existing or enter new recipient"
+                            required
                             value={formData.contributorName}
                             onChange={(e) => {
                               handleInputChange(e)
@@ -584,11 +738,11 @@ export function NewReceiptClient() {
                           )}
                           <div className="absolute right-3 flex items-center">
                             {selectedContact ? (
-                              <Button 
-                                type="button" 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-6 w-6 p-0" 
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
                                 onClick={(e) => {
                                   e.stopPropagation()
                                   clearSelectedContact()
@@ -603,14 +757,46 @@ export function NewReceiptClient() {
                         </div>
                       </PopoverTrigger>
                       <PopoverContent className="p-0" align="start" side="bottom" sideOffset={5}>
-                        <Command>
-                          <CommandInput 
-                            placeholder="Search contacts..." 
+                        <Command
+                          onKeyDown={(e) => {
+                            // Handle Enter key when search is active and no results
+                            if (e.key === 'Enter' && formData.contributorName && searchResults.length === 0) {
+                              e.preventDefault();
+                              handleCreateContact();
+                            }
+                          }}
+                        >
+                          <CommandInput
+                            placeholder="Search contacts..."
                             value={searchQuery}
-                            onValueChange={setSearchQuery}
+                            onValueChange={(value) => {
+                              setSearchQuery(value);
+                              // Keep formData.contributorName in sync with the search
+                              if (!selectedContact) {
+                                setFormData({
+                                  ...formData,
+                                  contributorName: value
+                                });
+                              }
+                            }}
                           />
                           <CommandList>
-                            <CommandEmpty>No contacts found</CommandEmpty>
+                            <CommandEmpty>
+                              <div className="px-2 py-3 text-center text-sm">
+                                <p>No contacts found.</p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Press enter to create &quot;{formData.contributorName}&quot;
+                                </p>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="mt-2 w-full"
+                                  onClick={handleCreateContact}
+                                >
+                                  Create &quot;{formData.contributorName}&quot;
+                                </Button>
+                              </div>
+                            </CommandEmpty>
                             <CommandGroup heading="Contacts">
                               {searchResults.map((contact) => (
                                 <CommandItem

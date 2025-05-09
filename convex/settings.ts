@@ -45,6 +45,8 @@ export const getOrganizationSettings = query({
         })
       ),
       receiptNumberingFormat: v.optional(v.string()),
+      receiptPrefix: v.optional(v.string()),
+      defaultReceiptTypeId: v.optional(v.id("receiptTypes")),
     })
   ),
   handler: async (ctx) => {
@@ -88,6 +90,8 @@ export const getOrganizationSettings = query({
         salesTaxSettings: settings.salesTaxSettings,
         whatsappIntegration: settings.whatsappIntegration,
         receiptNumberingFormat: settings.receiptNumberingFormat,
+        receiptPrefix: settings.receiptPrefix,
+        defaultReceiptTypeId: settings.defaultReceiptTypeId,
       };
     } catch (error) {
       console.error("Error in getOrganizationSettings:", error);
@@ -210,6 +214,8 @@ export const updateOrganizationSettings = mutation({
       })
     ),
     receiptNumberingFormat: v.optional(v.string()),
+    receiptPrefix: v.optional(v.string()),
+    defaultReceiptTypeId: v.optional(v.id("receiptTypes")),
   },
   returns: v.object({
     success: v.boolean(),
@@ -268,6 +274,7 @@ export const updateOrganizationSettings = mutation({
           name: "Sales Tax",
         },
         receiptNumberingFormat: args.receiptNumberingFormat || "{PREFIX}-{YEAR}-{NUMBER}",
+        receiptPrefix: args.receiptPrefix || "REC",
         whatsappIntegration: args.whatsappIntegration,
         updatedBy: user._id,
         updatedAt: Date.now(),
@@ -316,6 +323,14 @@ export const updateOrganizationSettings = mutation({
 
     if (args.receiptNumberingFormat) {
       updates.receiptNumberingFormat = args.receiptNumberingFormat;
+    }
+
+    if (args.receiptPrefix) {
+      updates.receiptPrefix = args.receiptPrefix;
+    }
+
+    if (args.defaultReceiptTypeId !== undefined) {
+      updates.defaultReceiptTypeId = args.defaultReceiptTypeId;
     }
 
     await ctx.db.patch(settings._id, updates);

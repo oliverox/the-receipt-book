@@ -1,12 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { 
-  Check, 
-  CreditCard, 
-  CheckCircle, 
-  Percent, 
-  Plus, 
+import { useEffect, useState, useMemo } from "react"
+import {
+  Check,
+  CreditCard,
+  CheckCircle,
+  Percent,
+  Plus,
   Search,
   MoreHorizontal,
   Edit,
@@ -90,6 +90,7 @@ export default function SettingsPage() {
   const [nextReceiptNumber, setNextReceiptNumber] = useState(1)
   const [receiptDigits, setReceiptDigits] = useState(4)
   const [receiptFooter, setReceiptFooter] = useState("Thank you for your contribution!")
+  const [defaultReceiptTypeId, setDefaultReceiptTypeId] = useState("")
   
   // Sales tax settings
   const [taxEnabled, setTaxEnabled] = useState(false)
@@ -112,7 +113,10 @@ export default function SettingsPage() {
   const userProfile = useQuery(api.auth.getUserProfile)
   const orgSettings = useQuery(api.settings.getOrganizationSettings)
   const initializeTypes = useMutation(api.receiptTypes.initializeDefaultReceiptTypes)
-  const receiptTypes = useQuery(api.receiptTypes.listReceiptTypes) || []
+  const receiptTypesResult = useQuery(api.receiptTypes.listReceiptTypes)
+
+  // Use useMemo to handle the default value for receiptTypes
+  const receiptTypes = useMemo(() => receiptTypesResult || [], [receiptTypesResult]);
 
   // Initialize receipt types if they don't exist
   useEffect(() => {
@@ -357,15 +361,19 @@ export default function SettingsPage() {
       // Receipt settings
       if (orgSettings.receiptNumberingFormat) {
         setReceiptFormat(orgSettings.receiptNumberingFormat)
-        
-        // Try to extract prefix from format if available
-        const prefixMatch = orgSettings.receiptNumberingFormat.match(/{PREFIX}/i)
-        if (prefixMatch && prefixMatch.index === 0) {
-          const parts = orgSettings.receiptNumberingFormat.split('-')
-          if (parts.length > 0) {
-            setReceiptPrefix(parts[0].replace('{PREFIX}', 'REC'))
-          }
-        }
+      }
+
+      // Get receipt prefix if available
+      if (orgSettings.receiptPrefix) {
+        setReceiptPrefix(orgSettings.receiptPrefix)
+      }
+
+      // Get default receipt type if available
+      // Initialize default receipt type - either from settings or "none"
+      if (orgSettings.defaultReceiptTypeId) {
+        setDefaultReceiptTypeId(orgSettings.defaultReceiptTypeId)
+      } else {
+        setDefaultReceiptTypeId("none")
       }
       
       // Email settings
@@ -479,14 +487,15 @@ export default function SettingsPage() {
   // Handle saving receipt settings
   const handleSaveReceiptSettings = async () => {
     setIsLoading(true)
-    
+
     try {
-      // Format the receipt numbering string with the prefix
-      const formattedReceiptFormat = receiptFormat.replace('{PREFIX}', receiptPrefix)
-      
+      // Keep the receipt format with the {PREFIX} placeholder
+
       // Update organization settings
       await updateOrgSettings({
-        receiptNumberingFormat: formattedReceiptFormat,
+        receiptNumberingFormat: receiptFormat,
+        receiptPrefix: receiptPrefix,
+        defaultReceiptTypeId: defaultReceiptTypeId === "none" ? undefined : defaultReceiptTypeId as Id<"receiptTypes">,
         salesTaxSettings: {
           enabled: taxEnabled,
           percentage: Number(taxPercentage),
@@ -746,15 +755,39 @@ export default function SettingsPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="receipt-digits">Number of Digits</Label>
-                <Input 
-                  id="receipt-digits" 
-                  type="number" 
+                <Input
+                  id="receipt-digits"
+                  type="number"
                   value={receiptDigits}
                   onChange={(e) => setReceiptDigits(parseInt(e.target.value))}
                   disabled={isDataLoading || isLoading}
                 />
                 <p className="text-sm text-muted-foreground">
                   The receipt number will be padded with zeros (e.g., 0001, 0002)
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="default-receipt-type">Default Receipt Type</Label>
+                <Select
+                  value={defaultReceiptTypeId}
+                  onValueChange={setDefaultReceiptTypeId}
+                  disabled={isDataLoading || isLoading}
+                >
+                  <SelectTrigger id="default-receipt-type">
+                    <SelectValue placeholder="Select default receipt type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No default (always ask)</SelectItem>
+                    {receiptTypes.map((type: { _id: string; name: string }) => (
+                      <SelectItem key={type._id} value={type._id}>
+                        {type.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground">
+                  This receipt type will be pre-selected when creating new receipts
                 </p>
               </div>
               <div className="space-y-2">

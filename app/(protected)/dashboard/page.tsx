@@ -1,41 +1,41 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import Link from "next/link"
-import { useUser } from "@clerk/nextjs"
-import { useQuery, useMutation } from "convex/react"
-import { api } from "@/convex/_generated/api"
-import { 
-  CalendarDays, 
-  Download, 
-  FileText, 
-  Filter, 
-  Plus, 
-  Search, 
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useUser } from "@clerk/nextjs";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import {
+  CalendarDays,
+  Download,
+  FileText,
+  Filter,
+  Plus,
+  Search,
   CreditCard,
-  Users
-} from "lucide-react"
+  Users,
+} from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { DashboardHeader } from "@/components/dashboard-header"
-import { ReceiptList } from "@/components/receipt-list"
-import { RecentActivity } from "@/components/recent-activity"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DashboardHeader } from "@/components/dashboard-header";
+import { ReceiptList } from "@/components/receipt-list";
+import { RecentActivity } from "@/components/recent-activity";
 
 export default function DashboardPage() {
   // Router removed as it's not currently used
-  const { isLoaded, isSignedIn, user } = useUser()
-  const [isInitializing, setIsInitializing] = useState(true)
-  
-  const userProfile = useQuery(api.auth.getUserProfile)
-  const recentReceipts = useQuery(api.receipts.listReceipts, {
-    limit: 10
-  })
+  const { isLoaded, isSignedIn, user } = useUser();
+  const [isInitializing, setIsInitializing] = useState(true);
 
-  const orgSettings = useQuery(api.settings.getOrganizationSettings)
-  const createDefaultSettings = useMutation(api.settings.createDefaultSettings)
+  const userProfile = useQuery(api.auth.getUserProfile);
+  const recentReceipts = useQuery(api.receipts.listReceipts, {
+    limit: 10,
+  });
+
+  const orgSettings = useQuery(api.settings.getOrganizationSettings);
+  const createDefaultSettings = useMutation(api.settings.createDefaultSettings);
 
   // If orgSettings is null, try to create default settings
   useEffect(() => {
@@ -57,9 +57,9 @@ export default function DashboardPage() {
   // (redirection is now handled by layout.tsx)
   useEffect(() => {
     if (isLoaded && isSignedIn) {
-      setIsInitializing(false)
+      setIsInitializing(false);
     }
-  }, [isLoaded, isSignedIn])
+  }, [isLoaded, isSignedIn]);
 
   // Show loading only when initializing
   if (isInitializing) {
@@ -70,7 +70,7 @@ export default function DashboardPage() {
           <p className="text-sm text-muted-foreground">Loading dashboard...</p>
         </div>
       </div>
-    )
+    );
   }
 
   // Define default values to use when data is missing
@@ -78,14 +78,15 @@ export default function DashboardPage() {
   const orgCurrencyCode = orgSettings?.currencySettings?.code || "USD";
 
   // Handle potentially missing receipt data with defaults
-  const receipts = recentReceipts?.receipts || []
-  const totalReceipts = receipts.length || 0
-  const totalAmount = receipts.reduce((sum, receipt) => sum + receipt.totalAmount, 0) || 0
+  const receipts = recentReceipts?.receipts || [];
+  const totalReceipts = receipts.length || 0;
+  const totalAmount =
+    receipts.reduce((sum, receipt) => sum + receipt.totalAmount, 0) || 0;
 
   return (
     <>
-      <DashboardHeader 
-        heading={`Welcome, ${user?.firstName || userProfile?.name?.split(" ")[0] || "User"}`} 
+      <DashboardHeader
+        heading={`Welcome, ${user?.firstName || userProfile?.name?.split(" ")[0] || "User"}`}
         text="Manage your receipts and organization activities."
       >
         <Link href="/receipts/new">
@@ -98,7 +99,9 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Receipts</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Receipts
+            </CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -135,30 +138,49 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
-      <Tabs defaultValue="recent" className="space-y-4">
+      <Tabs defaultValue="recent" className="space-y-4 mt-4">
         <TabsList className="w-full">
-          <TabsTrigger value="recent" className="flex-1">Recent Receipts</TabsTrigger>
-          <TabsTrigger value="activity" className="flex-1">Recent Activity</TabsTrigger>
+          <TabsTrigger value="recent" className="flex-1">
+            Recent Receipts
+          </TabsTrigger>
+          <TabsTrigger value="activity" className="flex-1">
+            Recent Activity
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="recent" className="space-y-4">
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 sm:items-center sm:justify-between">
             <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-2">
               <div className="relative w-full sm:w-64">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search receipts..." className="pl-8 w-full" />
+                <Input
+                  placeholder="Search receipts..."
+                  className="pl-8 w-full"
+                />
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="flex-1 sm:flex-none justify-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 sm:flex-none justify-center"
+                >
                   <Filter className="h-4 w-4 sm:mr-2" />
                   <span className="hidden sm:inline">Filter</span>
                 </Button>
-                <Button variant="outline" size="sm" className="flex-1 sm:flex-none justify-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 sm:flex-none justify-center"
+                >
                   <CalendarDays className="h-4 w-4 sm:mr-2" />
                   <span className="hidden sm:inline">Date Range</span>
                 </Button>
               </div>
             </div>
-            <Button variant="outline" size="sm" className="w-full sm:w-auto mt-2 sm:mt-0 justify-center">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full sm:w-auto mt-2 sm:mt-0 justify-center"
+            >
               <Download className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Export</span>
             </Button>
@@ -168,7 +190,9 @@ export default function DashboardPage() {
           ) : (
             <div className="flex h-[200px] items-center justify-center rounded-md border border-dashed">
               <div className="flex flex-col items-center gap-1 text-center">
-                <p className="text-sm text-muted-foreground">No receipts found</p>
+                <p className="text-sm text-muted-foreground">
+                  No receipts found
+                </p>
                 <Link href="/receipts/new">
                   <Button variant="outline" size="sm" className="mt-2">
                     Create your first receipt
@@ -183,5 +207,5 @@ export default function DashboardPage() {
         </TabsContent>
       </Tabs>
     </>
-  )
+  );
 }
