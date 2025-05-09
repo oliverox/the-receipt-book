@@ -11,12 +11,14 @@ export function DashboardHeader({
   children,
 }: DashboardHeaderProps) {
   return (
-    <div className="flex items-center justify-between px-2 pb-4">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between px-2 pb-4 gap-3">
       <div className="grid gap-1">
-        <h1 className="text-2xl font-bold tracking-tight">{heading}</h1>
-        {text && <p className="text-muted-foreground">{text}</p>}
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight">{heading}</h1>
+        {text && <p className="text-muted-foreground text-sm sm:text-base">{text}</p>}
       </div>
-      {children}
+      <div className="flex justify-start sm:justify-end">
+        {children}
+      </div>
     </div>
   );
 }

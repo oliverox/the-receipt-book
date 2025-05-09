@@ -95,7 +95,7 @@ export default function DashboardPage() {
           </Button>
         </Link>
       </DashboardHeader>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Receipts</CardTitle>
@@ -136,29 +136,31 @@ export default function DashboardPage() {
         </Card>
       </div>
       <Tabs defaultValue="recent" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="recent">Recent Receipts</TabsTrigger>
-          <TabsTrigger value="activity">Recent Activity</TabsTrigger>
+        <TabsList className="w-full">
+          <TabsTrigger value="recent" className="flex-1">Recent Receipts</TabsTrigger>
+          <TabsTrigger value="activity" className="flex-1">Recent Activity</TabsTrigger>
         </TabsList>
         <TabsContent value="recent" className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="relative w-64">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 sm:items-center sm:justify-between">
+            <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-2">
+              <div className="relative w-full sm:w-64">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search receipts..." className="pl-8" />
+                <Input placeholder="Search receipts..." className="pl-8 w-full" />
               </div>
-              <Button variant="outline" size="sm">
-                <Filter className="mr-2 h-4 w-4" />
-                Filter
-              </Button>
-              <Button variant="outline" size="sm">
-                <CalendarDays className="mr-2 h-4 w-4" />
-                Date Range
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" className="flex-1 sm:flex-none justify-center">
+                  <Filter className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Filter</span>
+                </Button>
+                <Button variant="outline" size="sm" className="flex-1 sm:flex-none justify-center">
+                  <CalendarDays className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Date Range</span>
+                </Button>
+              </div>
             </div>
-            <Button variant="outline" size="sm">
-              <Download className="mr-2 h-4 w-4" />
-              Export
+            <Button variant="outline" size="sm" className="w-full sm:w-auto mt-2 sm:mt-0 justify-center">
+              <Download className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Export</span>
             </Button>
           </div>
           {receipts.length > 0 ? (

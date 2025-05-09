@@ -32,15 +32,25 @@ export function useOnboarding() {
         
         // If we can't find the user in Convex, create them
         if (!userProfile) {
-          // Ensure we have required user data before making the API call
-          const userName = user?.fullName;
+          // Get user email from Clerk
           const userEmail = user?.primaryEmailAddress?.emailAddress;
 
-          if (!userName || !userEmail) {
-            console.warn("Missing user data for onboarding:", { userName, userEmail });
+          // Ensure we have at least email
+          if (!userEmail) {
+            console.warn("Missing email for onboarding");
             // Wait for user data to be available
             setIsProcessing(false);
             return;
+          }
+
+          // Use fullName if available, or fallback to email username or just "User"
+          let userName = user?.fullName;
+          if (!userName) {
+            // Try to extract a name from email (part before @)
+            const emailName = userEmail.split('@')[0];
+            // Capitalize first letter and use as name
+            userName = emailName.charAt(0).toUpperCase() + emailName.slice(1);
+            console.log("Using email username as name:", userName);
           }
 
           try {

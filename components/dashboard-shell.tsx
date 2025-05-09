@@ -47,7 +47,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
                 <UserNav />
               </div>
             </header>
-            <main className="flex w-full flex-1 flex-col overflow-auto p-6">
+            <main className="flex w-full flex-1 flex-col overflow-auto p-3 sm:p-4 md:p-6">
               {children}
             </main>
           </SidebarInset>

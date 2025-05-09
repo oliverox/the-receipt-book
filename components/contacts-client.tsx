@@ -56,13 +56,13 @@ export function ContactsClient() {
           </Button>
         </Link>
       </DashboardHeader>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="relative w-64">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+        <div className="flex flex-col sm:flex-row w-full gap-2">
+          <div className="relative w-full sm:w-64">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search contacts..." 
-              className="pl-8" 
+            <Input
+              placeholder="Search contacts..."
+              className="pl-8 w-full"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -71,7 +71,7 @@ export function ContactsClient() {
             value={selectedType?.toString() || 'all'}
             onValueChange={(value) => setSelectedType(value === 'all' ? null : value as Id<"contactTypes">)}
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Filter by type" />
             </SelectTrigger>
             <SelectContent>
@@ -85,80 +85,128 @@ export function ContactsClient() {
           </Select>
         </div>
       </div>
-      <div className="rounded-md border">
-        {contacts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 p-4 text-center">
-            <h3 className="text-lg font-medium mb-2">No contacts found</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              {searchQuery.length > 0 
-                ? "Try a different search term or clear filters" 
-                : "Start by adding a contact or create one when creating a new receipt"}
-            </p>
-            <Link href="/contacts/new">
-              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">
-                <Plus className="mr-2 h-4 w-4" />
-                Add a Contact
-              </Button>
-            </Link>
-          </div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Total Contributions</TableHead>
-                <TableHead className="w-[50px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {contacts.map((contact) => (
-                <TableRow key={contact._id}>
-                  <TableCell>
-                    <Link href={`/contacts/${contact._id}`} className="font-medium hover:underline">
-                      {contact.name}
-                    </Link>
-                  </TableCell>
-                  <TableCell>{contact.email || "-"}</TableCell>
-                  <TableCell>{contact.phone || "-"}</TableCell>
-                  <TableCell>
-                    <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700">
-                      {contact.contactType.name}
-                    </span>
-                  </TableCell>
-                  <TableCell>
+      {contacts.length === 0 ? (
+        <div className="rounded-md border flex flex-col items-center justify-center h-64 p-4 text-center">
+          <h3 className="text-lg font-medium mb-2">No contacts found</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            {searchQuery.length > 0
+              ? "Try a different search term or clear filters"
+              : "Start by adding a contact or create one when creating a new receipt"}
+          </p>
+          <Link href="/contacts/new" className="w-full sm:w-auto">
+            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 w-full sm:w-auto">
+              <Plus className="mr-2 h-4 w-4" />
+              Add a Contact
+            </Button>
+          </Link>
+        </div>
+      ) : (
+        <>
+          {/* Mobile view - Card layout */}
+          <div className="md:hidden space-y-3">
+            {contacts.map((contact) => (
+              <div key={contact._id} className="rounded-md border p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <Link href={`/contacts/${contact._id}`} className="font-medium hover:underline truncate flex-1">
+                    {contact.name}
+                  </Link>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">Open menu</span>
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <Link href={`/contacts/${contact._id}`}>
+                        <DropdownMenuItem>View details</DropdownMenuItem>
+                      </Link>
+                      <Link href={`/contacts/${contact._id}/edit`}>
+                        <DropdownMenuItem>Edit contact</DropdownMenuItem>
+                      </Link>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem>View receipts</DropdownMenuItem>
+                      <DropdownMenuItem>Create receipt</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700">
+                    {contact.contactType.name}
+                  </span>
+                  <span className="font-medium text-sm">
                     {formatCurrency(contact.totalContributions || 0)}
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Open menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <Link href={`/contacts/${contact._id}`}>
-                          <DropdownMenuItem>View details</DropdownMenuItem>
-                        </Link>
-                        <Link href={`/contacts/${contact._id}/edit`}>
-                          <DropdownMenuItem>Edit contact</DropdownMenuItem>
-                        </Link>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem>View receipts</DropdownMenuItem>
-                        <DropdownMenuItem>Create receipt</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+                  </span>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {contact.email && <div className="truncate">{contact.email}</div>}
+                  {contact.phone && <div>{contact.phone}</div>}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop view - Table layout */}
+          <div className="hidden md:block rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Total Contributions</TableHead>
+                  <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </div>
+              </TableHeader>
+              <TableBody>
+                {contacts.map((contact) => (
+                  <TableRow key={contact._id}>
+                    <TableCell>
+                      <Link href={`/contacts/${contact._id}`} className="font-medium hover:underline">
+                        {contact.name}
+                      </Link>
+                    </TableCell>
+                    <TableCell>{contact.email || "-"}</TableCell>
+                    <TableCell>{contact.phone || "-"}</TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700">
+                        {contact.contactType.name}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {formatCurrency(contact.totalContributions || 0)}
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <Link href={`/contacts/${contact._id}`}>
+                            <DropdownMenuItem>View details</DropdownMenuItem>
+                          </Link>
+                          <Link href={`/contacts/${contact._id}/edit`}>
+                            <DropdownMenuItem>Edit contact</DropdownMenuItem>
+                          </Link>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem>View receipts</DropdownMenuItem>
+                          <DropdownMenuItem>Create receipt</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </>
+      )}
     </>
   )
 }

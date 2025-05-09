@@ -102,21 +102,21 @@ export function RecentActivity() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Recent Activity</CardTitle>
-        <CardDescription>Recent actions performed by you and your team.</CardDescription>
+      <CardHeader className="px-4 sm:px-6">
+        <CardTitle className="text-lg sm:text-xl">Recent Activity</CardTitle>
+        <CardDescription className="text-xs sm:text-sm">Recent actions performed by you and your team.</CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-8">
+      <CardContent className="px-4 sm:px-6">
+        <div className="space-y-6 sm:space-y-8">
           {recentActivity && recentActivity.length > 0 ? (
             recentActivity.map((activity) => (
               <div className="flex items-start" key={activity._id}>
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100">
+                <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-slate-100">
                   {getIconForAction(activity.action)}
                 </div>
-                <div className="ml-4 space-y-1">
-                  <p className="text-sm font-medium">
-                    {activity.user.name}{" "}
+                <div className="ml-3 sm:ml-4 space-y-1">
+                  <p className="text-xs sm:text-sm font-medium leading-tight">
+                    <span className="font-semibold">{activity.user.name}</span>{" "}
                     {getActivityMessage(activity)}
                   </p>
                   <p className="text-xs text-muted-foreground">
@@ -126,11 +126,11 @@ export function RecentActivity() {
               </div>
             ))
           ) : (
-            <div className="flex h-[200px] items-center justify-center rounded-md border border-dashed">
-              <div className="flex flex-col items-center gap-2 text-center">
+            <div className="flex h-[150px] sm:h-[200px] items-center justify-center rounded-md border border-dashed">
+              <div className="flex flex-col items-center gap-2 text-center p-4">
                 <p className="text-sm text-muted-foreground">No recent activity</p>
-                <Link href="/receipts/new">
-                  <Button variant="outline" size="sm" className="mt-1">
+                <Link href="/receipts/new" className="w-full sm:w-auto">
+                  <Button variant="outline" size="sm" className="mt-1 w-full sm:w-auto">
                     Create your first receipt
                   </Button>
                 </Link>

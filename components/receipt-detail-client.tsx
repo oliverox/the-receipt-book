@@ -131,16 +131,16 @@ export function ReceiptDetailClient({ receiptId }: ReceiptDetailClientProps) {
         heading={`Receipt #${formattedReceipt.receiptNumber}`}
         text="View receipt details and download or share the receipt."
       >
-        <div className="flex gap-2">
-          <Link href="/receipts">
-            <Button variant="outline">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Receipts
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <Link href="/receipts" className="w-full sm:w-auto">
+            <Button variant="outline" className="w-full sm:w-auto justify-center sm:justify-start">
+              <ArrowLeft className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Back to Receipts</span>
             </Button>
           </Link>
-          <Button className="bg-emerald-600 hover:bg-emerald-700">
-            <Mail className="mr-2 h-4 w-4" />
-            Send
+          <Button className="bg-emerald-600 hover:bg-emerald-700 w-full sm:w-auto justify-center sm:justify-start">
+            <Mail className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Send</span>
           </Button>
         </div>
       </DashboardHeader>
@@ -148,96 +148,116 @@ export function ReceiptDetailClient({ receiptId }: ReceiptDetailClientProps) {
       <div className="grid gap-6 md:grid-cols-1">
         <div className="space-y-6">
           <Card>
-            <CardHeader>
+            <CardHeader className="px-4 sm:px-6">
               <CardTitle>Receipt Information</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            <CardContent className="space-y-4 px-4 sm:px-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Receipt Number</p>
-                  <p>{formattedReceipt.receiptNumber}</p>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">Receipt Number</p>
+                  <p className="text-sm sm:text-base truncate">{formattedReceipt.receiptNumber}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Receipt Type</p>
-                  <p>{formattedReceipt.receiptType}</p>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">Receipt Type</p>
+                  <p className="text-sm sm:text-base">{formattedReceipt.receiptType}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Date</p>
-                  <p>{formattedReceipt.date}</p>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">Date</p>
+                  <p className="text-sm sm:text-base">{formattedReceipt.date}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Status</p>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">Status</p>
                   <div className="flex items-center">
                     <div className={`h-2 w-2 rounded-full ${
-                      formattedReceipt.status === "draft" 
-                        ? "bg-amber-500" 
-                        : formattedReceipt.status === "sent" 
-                          ? "bg-emerald-500" 
-                          : formattedReceipt.status === "viewed" 
+                      formattedReceipt.status === "draft"
+                        ? "bg-amber-500"
+                        : formattedReceipt.status === "sent"
+                          ? "bg-emerald-500"
+                          : formattedReceipt.status === "viewed"
                             ? "bg-blue-500"
                             : "bg-gray-500"
                     } mr-2`} />
-                    <p className="capitalize">{formattedReceipt.status}</p>
+                    <p className="text-sm sm:text-base capitalize">{formattedReceipt.status}</p>
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Amount</p>
-                  <p className="font-bold">{receipt.currency || currencySymbol} {formattedReceipt.total.toLocaleString()}</p>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">Total Amount</p>
+                  <p className="text-sm sm:text-base font-bold">{receipt.currency || currencySymbol} {formattedReceipt.total.toLocaleString()}</p>
                 </div>
               </div>
 
               <Separator />
 
               <div>
-                <p className="text-sm font-medium text-muted-foreground mb-2">Recipient Information</p>
-                <p className="font-medium">{formattedReceipt.recipient.name}</p>
-                <p>{formattedReceipt.recipient.email}</p>
-                <p>{formattedReceipt.recipient.phone}</p>
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-2">Recipient Information</p>
+                <p className="font-medium text-sm sm:text-base">{formattedReceipt.recipient.name}</p>
+                <p className="text-sm sm:text-base">{formattedReceipt.recipient.email}</p>
+                {formattedReceipt.recipient.phone && (
+                  <p className="text-sm sm:text-base">{formattedReceipt.recipient.phone}</p>
+                )}
                 {formattedReceipt.recipient.address && (
-                  <p className="text-sm text-muted-foreground">{formattedReceipt.recipient.address}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">{formattedReceipt.recipient.address}</p>
                 )}
               </div>
 
               <Separator />
 
               <div>
-                <p className="text-sm font-medium text-muted-foreground mb-2">
-                  {formattedReceipt.receiptType === "Donation" 
-                    ? "Fund Contributions" 
-                    : formattedReceipt.receiptType === "Sales" 
-                      ? "Items" 
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-2">
+                  {formattedReceipt.receiptType === "Donation"
+                    ? "Fund Contributions"
+                    : formattedReceipt.receiptType === "Sales"
+                      ? "Items"
                       : "Services"}
                 </p>
                 <div className="space-y-2">
                   {formattedReceipt.receiptType === "Sales" ? (
                     // Display sales receipt items with quantity and unit price
                     <div>
-                      <div className="grid grid-cols-4 gap-2 mb-2 text-sm text-muted-foreground">
+                      {/* Desktop view for sales items */}
+                      <div className="hidden sm:grid sm:grid-cols-4 gap-2 mb-2 text-xs text-muted-foreground">
                         <p>Item</p>
                         <p className="text-right">Qty</p>
                         <p className="text-right">Unit Price</p>
                         <p className="text-right">Amount</p>
                       </div>
+                      <div className="sm:hidden mb-2 text-xs font-medium text-muted-foreground">Items</div>
+
                       {formattedReceipt.items.map((item, index) => (
-                        <div key={index} className="grid grid-cols-4 gap-2">
-                          <p>{item.name || item.category}</p>
-                          <p className="text-right">{item.quantity || 1}</p>
-                          <p className="text-right">{receipt.currency || currencySymbol} {item.unitPrice?.toLocaleString() || (item.amount / (item.quantity || 1)).toLocaleString()}</p>
-                          <p className="text-right">{receipt.currency || currencySymbol} {item.amount.toLocaleString()}</p>
+                        <div key={index}>
+                          {/* Desktop view - grid layout */}
+                          <div className="hidden sm:grid sm:grid-cols-4 gap-2 text-sm">
+                            <p>{item.name || item.category}</p>
+                            <p className="text-right">{item.quantity || 1}</p>
+                            <p className="text-right">{receipt.currency || currencySymbol} {item.unitPrice?.toLocaleString() || (item.amount / (item.quantity || 1)).toLocaleString()}</p>
+                            <p className="text-right">{receipt.currency || currencySymbol} {item.amount.toLocaleString()}</p>
+                          </div>
+
+                          {/* Mobile view - card layout */}
+                          <div className="sm:hidden border rounded-md p-2 mb-2 text-sm">
+                            <div className="flex justify-between">
+                              <p className="font-medium">{item.name || item.category}</p>
+                              <p className="font-medium">{receipt.currency || currencySymbol} {item.amount.toLocaleString()}</p>
+                            </div>
+                            <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                              <p>Qty: {item.quantity || 1}</p>
+                              <p>Unit: {receipt.currency || currencySymbol} {item.unitPrice?.toLocaleString() || (item.amount / (item.quantity || 1)).toLocaleString()}</p>
+                            </div>
+                          </div>
                         </div>
                       ))}
                     </div>
                   ) : (
                     // Display donation or service receipt items
                     formattedReceipt.items.map((item, index) => (
-                      <div key={index} className="flex justify-between">
+                      <div key={index} className="flex justify-between text-sm sm:text-base">
                         <p>{item.name || item.category}</p>
                         <p>{receipt.currency || currencySymbol} {item.amount.toLocaleString()}</p>
                       </div>
                     ))
                   )}
                   <Separator />
-                  <div className="flex justify-between font-bold">
+                  <div className="flex justify-between font-bold text-sm sm:text-base">
                     <p>Total</p>
                     <p>{receipt.currency || currencySymbol} {formattedReceipt.total.toLocaleString()}</p>
                   </div>
@@ -248,32 +268,32 @@ export function ReceiptDetailClient({ receiptId }: ReceiptDetailClientProps) {
                 <>
                   <Separator />
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground mb-2">Notes</p>
-                    <p className="text-sm">{formattedReceipt.notes}</p>
+                    <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-2">Notes</p>
+                    <p className="text-xs sm:text-sm">{formattedReceipt.notes}</p>
                   </div>
                 </>
               )}
             </CardContent>
           </Card>
 
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm">
-              <Download className="mr-2 h-4 w-4" />
-              Download PDF
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
+            <Button variant="outline" size="sm" className="w-full justify-center sm:w-auto sm:justify-start">
+              <Download className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Download PDF</span>
             </Button>
-            <Button variant="outline" size="sm">
-              <Printer className="mr-2 h-4 w-4" />
-              Print
+            <Button variant="outline" size="sm" className="w-full justify-center sm:w-auto sm:justify-start">
+              <Printer className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Print</span>
             </Button>
-            <Button variant="outline" size="sm">
-              <Share2 className="mr-2 h-4 w-4" />
-              Share
+            <Button variant="outline" size="sm" className="w-full justify-center sm:w-auto sm:justify-start">
+              <Share2 className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Share</span>
             </Button>
             <Dialog open={isVoidDialogOpen} onOpenChange={setIsVoidDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="text-red-500 hover:text-red-600">
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Void Receipt
+                <Button variant="outline" size="sm" className="w-full justify-center sm:w-auto sm:justify-start text-red-500 hover:text-red-600">
+                  <Trash2 className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Void Receipt</span>
                 </Button>
               </DialogTrigger>
               <DialogContent>

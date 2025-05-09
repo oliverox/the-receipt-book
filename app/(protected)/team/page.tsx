@@ -239,13 +239,13 @@ export default function TeamPage() {
       <DashboardHeader heading="Team" text="Manage team members who can access your organization.">
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button 
+            <Button
               className="bg-emerald-600 hover:bg-emerald-700"
               disabled={!subscriptionInfo?.canAddMoreMembers && !subscriptionInfo?.canAlwaysAddViewers}
               title={!subscriptionInfo?.canAddMoreMembers ? "You can still add Viewers even if your team member limit is reached" : ""}
             >
-              <UserPlus className="mr-2 h-4 w-4" />
-              Add Team Member
+              <UserPlus className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Add Team Member</span>
             </Button>
           </DialogTrigger>
           <DialogContent>
@@ -346,12 +346,12 @@ export default function TeamPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                <div className="space-y-1">
                   <p className="font-medium">Current Plan</p>
                   <p className="capitalize">{subscriptionInfo.currentTier}</p>
                 </div>
-                <div>
+                <div className="space-y-1">
                   <p className="font-medium">Team Members (Admin/Member)</p>
                   <p>
                     {subscriptionInfo.currentTeamSize} of {subscriptionInfo.maxTeamSize} used
@@ -363,9 +363,9 @@ export default function TeamPage() {
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">Viewers don&apos;t count towards your quota</p>
                 </div>
-                <div>
+                <div className="space-y-1">
                   <p className="font-medium">Status</p>
-                  <div className="flex flex-col gap-1 mt-1">
+                  <div className="flex flex-wrap gap-1 mt-1">
                     {subscriptionInfo.canAddMoreMembers ? (
                       <Badge className="inline-flex w-fit bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
                         Team slots available
@@ -385,11 +385,11 @@ export default function TeamPage() {
                 <div className="mt-4 p-3 rounded-md bg-amber-50 border border-amber-200 flex items-start">
                   <AlertTriangle className="h-5 w-5 text-amber-500 mr-2 flex-shrink-0 mt-0.5" />
                   <div className="text-sm text-amber-800">
-                    <p>
+                    <p className="text-xs sm:text-sm">
                       You&apos;ve reached the maximum number of team members (Admins/Members) for your {subscriptionInfo.currentTier} plan.
                       To add more team members, please upgrade your subscription.
                     </p>
-                    <p className="mt-2 font-medium">
+                    <p className="mt-2 font-medium text-xs sm:text-sm">
                       You can still add Viewers with read-only access which don&apos;t count towards your plan limit.
                     </p>
                   </div>
@@ -399,19 +399,196 @@ export default function TeamPage() {
           </Card>
         )}
 
-        <div className="flex items-center justify-between">
-          <div className="relative w-64">
+        <div className="flex items-center justify-between mb-4">
+          <div className="relative w-full sm:w-64">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search team members..."
-              className="pl-8"
+              className="pl-8 w-full"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
 
-        <div className="rounded-md border">
+        {/* Mobile view - Card Layout */}
+        <div className="md:hidden space-y-3">
+          {filteredTeamMembers.length === 0 ? (
+            <div className="text-center py-8 px-4 border rounded-md">
+              No team members found.
+            </div>
+          ) : (
+            filteredTeamMembers.map((member) => (
+              <Card key={member._id} className="overflow-hidden">
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle className="text-base">{member.name}</CardTitle>
+                      <CardDescription className="text-sm">{member.email}</CardDescription>
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <span className="sr-only">Open menu</span>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        {member.status === "Invited" && (
+                          <DropdownMenuItem onClick={() => {}}>
+                            <Mail className="mr-2 h-4 w-4" />
+                            Resend Invitation
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="text-red-600"
+                          onClick={() => handleRemoveUser(member._id)}
+                        >
+                          Remove
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </CardHeader>
+                <CardContent className="pb-3">
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <span className="text-muted-foreground block mb-1">Role</span>
+                      <Popover
+                        open={isRolePopoverOpen && selectedUserId === member._id}
+                        onOpenChange={(open) => {
+                          setIsRolePopoverOpen(open)
+                          if (open) setSelectedUserId(member._id)
+                        }}
+                      >
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" size="sm" className="h-8 flex items-center justify-between w-full font-normal">
+                            <span className="capitalize">{member.role}</span>
+                            <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[200px] p-0" align="start">
+                          <Command>
+                            <CommandInput placeholder="Search role..." />
+                            <CommandList>
+                              <CommandEmpty>No role found.</CommandEmpty>
+                              <CommandGroup>
+                                {roles.map((role) => (
+                                  <CommandItem
+                                    key={role.value}
+                                    onSelect={() => handleRoleUpdate(member._id, role.value)}
+                                    disabled={role.value !== "viewer" && !subscriptionInfo?.canAddMoreMembers && member.role !== role.value}
+                                    className="flex flex-col items-start"
+                                  >
+                                    <div className="flex items-center w-full">
+                                      <Check
+                                        className={`mr-2 h-4 w-4 ${
+                                          role.value === member.role ? "opacity-100" : "opacity-0"
+                                        }`}
+                                      />
+                                      <span>{role.label}</span>
+                                    </div>
+                                    <span className="text-xs text-muted-foreground ml-6">{role.description}</span>
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground block mb-1">Title</span>
+                      <Popover
+                        open={isTitlePopoverOpen && selectedUserId === member._id}
+                        onOpenChange={(open) => {
+                          setIsTitlePopoverOpen(open)
+                          if (open) setSelectedUserId(member._id)
+                        }}
+                      >
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" size="sm" className="h-8 flex items-center justify-between w-full font-normal text-left">
+                            <span className="truncate">{member.title || "No title"}</span>
+                            <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[250px] p-4" align="start">
+                          <div className="space-y-4">
+                            <div>
+                              <Label htmlFor="custom-title-mobile">Custom Title</Label>
+                              <Input
+                                id="custom-title-mobile"
+                                placeholder="e.g., Treasurer"
+                                defaultValue={member.title || ""}
+                                className="mt-1"
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    handleTitleUpdate(member._id, (e.target as HTMLInputElement).value)
+                                  }
+                                }}
+                              />
+                            </div>
+                            <div>
+                              <Label>Suggested Titles</Label>
+                              <div className="mt-2 flex flex-wrap gap-1">
+                                {exampleTitles.map((title) => (
+                                  <Badge
+                                    key={title}
+                                    variant="outline"
+                                    className="cursor-pointer hover:bg-gray-100 transition-colors"
+                                    onClick={() => handleTitleUpdate(member._id, title)}
+                                  >
+                                    {title}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="flex justify-between">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleTitleUpdate(member._id, "")}
+                              >
+                                Clear
+                              </Button>
+                              <Button
+                                size="sm"
+                                className="bg-emerald-600 hover:bg-emerald-700"
+                                onClick={() => setIsTitlePopoverOpen(false)}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+                  <div className="mt-3 flex justify-between items-center text-xs">
+                    <div className="flex items-center">
+                      <div
+                        className={`h-2 w-2 rounded-full mr-2 ${
+                          member.status === "Active" ? "bg-emerald-500" :
+                          member.status === "Invited" ? "bg-amber-500" : "bg-gray-500"
+                        }`}
+                      />
+                      {member.status || (member.active ? "Active" : "Inactive")}
+                    </div>
+                    <div className="flex items-center text-muted-foreground">
+                      <Clock className="mr-1 h-3 w-3" />
+                      {formatLastActive(member.lastLogin)}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
+
+        {/* Desktop view - Table Layout */}
+        <div className="hidden md:block rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>
@@ -501,8 +678,8 @@ export default function TeamPage() {
                           <div className="space-y-4">
                             <div>
                               <Label htmlFor="custom-title">Custom Title</Label>
-                              <Input 
-                                id="custom-title" 
+                              <Input
+                                id="custom-title"
                                 placeholder="e.g., Treasurer"
                                 defaultValue={member.title || ""}
                                 className="mt-1"
@@ -517,9 +694,9 @@ export default function TeamPage() {
                               <Label>Suggested Titles</Label>
                               <div className="mt-2 flex flex-wrap gap-1">
                                 {exampleTitles.map((title) => (
-                                  <Badge 
-                                    key={title} 
-                                    variant="outline" 
+                                  <Badge
+                                    key={title}
+                                    variant="outline"
                                     className="cursor-pointer hover:bg-gray-100 transition-colors"
                                     onClick={() => handleTitleUpdate(member._id, title)}
                                   >
@@ -529,14 +706,14 @@ export default function TeamPage() {
                               </div>
                             </div>
                             <div className="flex justify-between">
-                              <Button 
-                                variant="outline" 
+                              <Button
+                                variant="outline"
                                 size="sm"
                                 onClick={() => handleTitleUpdate(member._id, "")}
                               >
                                 Clear Title
                               </Button>
-                              <Button 
+                              <Button
                                 size="sm"
                                 className="bg-emerald-600 hover:bg-emerald-700"
                                 onClick={() => setIsTitlePopoverOpen(false)}
@@ -552,7 +729,7 @@ export default function TeamPage() {
                       <div className="flex items-center">
                         <div
                           className={`h-2 w-2 rounded-full mr-2 ${
-                            member.status === "Active" ? "bg-emerald-500" : 
+                            member.status === "Active" ? "bg-emerald-500" :
                             member.status === "Invited" ? "bg-amber-500" : "bg-gray-500"
                           }`}
                         />
@@ -582,7 +759,7 @@ export default function TeamPage() {
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             className="text-red-600"
                             onClick={() => handleRemoveUser(member._id)}
                           >

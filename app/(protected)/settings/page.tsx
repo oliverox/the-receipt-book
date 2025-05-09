@@ -111,7 +111,24 @@ export default function SettingsPage() {
   // Convex queries and mutations
   const userProfile = useQuery(api.auth.getUserProfile)
   const orgSettings = useQuery(api.settings.getOrganizationSettings)
+  const initializeTypes = useMutation(api.receiptTypes.initializeDefaultReceiptTypes)
   const receiptTypes = useQuery(api.receiptTypes.listReceiptTypes) || []
+
+  // Initialize receipt types if they don't exist
+  useEffect(() => {
+    const initTypes = async () => {
+      if (receiptTypes.length === 0 && userProfile?.organizationId) {
+        try {
+          await initializeTypes();
+          console.log("Initialized default receipt types");
+        } catch (error) {
+          console.error("Error initializing receipt types:", error);
+        }
+      }
+    };
+
+    initTypes();
+  }, [receiptTypes, userProfile, initializeTypes]);
   
   // Find receipt type IDs for the different tabs
   const donationTypeId = receiptTypes.find((type: { name: string; _id: string }) => type.name === "Donation")?._id
@@ -560,12 +577,12 @@ export default function SettingsPage() {
     <>
       <DashboardHeader heading="Settings" text="Manage your organization and receipt settings." />
       <Tabs defaultValue={defaultTab} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="organization">Organization</TabsTrigger>
-          <TabsTrigger value="receipt">Receipt Settings</TabsTrigger>
-          <TabsTrigger value="templates">Templates</TabsTrigger>
-          <TabsTrigger value="categories">Categories</TabsTrigger>
-          <TabsTrigger value="billing">Billing</TabsTrigger>
+        <TabsList className="flex flex-wrap w-full overflow-auto">
+          <TabsTrigger value="organization" className="text-xs sm:text-sm">Organization</TabsTrigger>
+          <TabsTrigger value="receipt" className="text-xs sm:text-sm">Receipt</TabsTrigger>
+          <TabsTrigger value="templates" className="text-xs sm:text-sm">Templates</TabsTrigger>
+          <TabsTrigger value="categories" className="text-xs sm:text-sm">Categories</TabsTrigger>
+          <TabsTrigger value="billing" className="text-xs sm:text-sm">Billing</TabsTrigger>
         </TabsList>
         <TabsContent value="organization" className="space-y-4">
           <Card>
@@ -831,7 +848,7 @@ export default function SettingsPage() {
               <CardDescription>Choose and customize the appearance of your receipts.</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
                 <div
                   className={`cursor-pointer rounded-lg border-2 p-2 transition-all hover:shadow-md ${
                     selectedTemplate === "modern" ? "border-emerald-600" : "border-transparent"
@@ -935,8 +952,8 @@ export default function SettingsPage() {
               <Dialog open={isAddCategoryDialogOpen} onOpenChange={setIsAddCategoryDialogOpen}>
                 <DialogTrigger asChild>
                   <Button className="bg-emerald-600 hover:bg-emerald-700">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Category
+                    <Plus className="h-4 w-4 md:mr-2" />
+                    <span className="hidden md:inline">Add Category</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
@@ -1007,18 +1024,18 @@ export default function SettingsPage() {
                 onValueChange={setSelectedCategoryTab} 
                 className="w-full"
               >
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-3 text-xs sm:text-sm">
                   <TabsTrigger value="donation">Donation</TabsTrigger>
                   <TabsTrigger value="sales">Sales</TabsTrigger>
                   <TabsTrigger value="service">Service</TabsTrigger>
                 </TabsList>
                 
                 <div className="flex items-center my-4">
-                  <div className="relative w-full max-w-sm">
+                  <div className="relative w-full">
                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       placeholder="Search categories..."
-                      className="pl-8"
+                      className="pl-8 w-full"
                       value={searchCategoryQuery}
                       onChange={(e) => setSearchCategoryQuery(e.target.value)}
                     />
@@ -1026,37 +1043,23 @@ export default function SettingsPage() {
                 </div>
                 
                 <TabsContent value="donation">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[250px]">Category Name</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead className="w-[120px]">Status</TableHead>
-                        <TableHead className="w-[120px]">Created</TableHead>
-                        <TableHead className="w-[70px]"></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {!donationTypeId || sortedCategories.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={5} className="h-24 text-center">
-                            No categories found. Add your first category above.
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        sortedCategories.map((category) => (
-                          <TableRow key={category._id} className={!category.active ? "bg-muted/50" : ""}>
-                            <TableCell className="font-medium">{category.name}</TableCell>
-                            <TableCell>{category.description || "-"}</TableCell>
-                            <TableCell>
-                              {category.active ? (
-                                <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">Active</Badge>
-                              ) : (
-                                <Badge variant="outline" className="text-gray-500">Inactive</Badge>
-                              )}
-                            </TableCell>
-                            <TableCell>{formatDate(category.createdAt)}</TableCell>
-                            <TableCell>
+                  {/* Mobile view - Card Layout */}
+                  <div className="md:hidden space-y-3">
+                    {!donationTypeId || sortedCategories.length === 0 ? (
+                      <div className="text-center py-8 px-4 border rounded-md">
+                        No categories found. Add your first category above.
+                      </div>
+                    ) : (
+                      sortedCategories.map((category) => (
+                        <Card key={category._id} className={`overflow-hidden ${!category.active ? "bg-muted/30" : ""}`}>
+                          <CardHeader className="pb-2">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <CardTitle className="text-base">{category.name}</CardTitle>
+                                {category.description && (
+                                  <CardDescription className="text-xs line-clamp-2">{category.description}</CardDescription>
+                                )}
+                              </div>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <Button variant="ghost" className="h-8 w-8 p-0">
@@ -1071,7 +1074,7 @@ export default function SettingsPage() {
                                     Edit
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator />
-                                  <DropdownMenuItem 
+                                  <DropdownMenuItem
                                     className="text-red-600"
                                     onClick={() => openDeleteCategoryDialog(category._id)}
                                   >
@@ -1080,46 +1083,110 @@ export default function SettingsPage() {
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="pb-3">
+                            <div className="flex items-center justify-between text-xs">
+                              <div>
+                                {category.active ? (
+                                  <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">Active</Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-gray-500">Inactive</Badge>
+                                )}
+                              </div>
+                              <div className="text-muted-foreground">
+                                Created: {formatDate(category.createdAt)}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Desktop view - Table Layout */}
+                  <div className="hidden md:block">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[250px]">Category Name</TableHead>
+                          <TableHead>Description</TableHead>
+                          <TableHead className="w-[120px]">Status</TableHead>
+                          <TableHead className="w-[120px]">Created</TableHead>
+                          <TableHead className="w-[70px]"></TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {!donationTypeId || sortedCategories.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={5} className="h-24 text-center">
+                              No categories found. Add your first category above.
                             </TableCell>
                           </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
+                        ) : (
+                          sortedCategories.map((category) => (
+                            <TableRow key={category._id} className={!category.active ? "bg-muted/50" : ""}>
+                              <TableCell className="font-medium">{category.name}</TableCell>
+                              <TableCell>{category.description || "-"}</TableCell>
+                              <TableCell>
+                                {category.active ? (
+                                  <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">Active</Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-gray-500">Inactive</Badge>
+                                )}
+                              </TableCell>
+                              <TableCell>{formatDate(category.createdAt)}</TableCell>
+                              <TableCell>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" className="h-8 w-8 p-0">
+                                      <span className="sr-only">Open menu</span>
+                                      <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                    <DropdownMenuItem onClick={() => openEditCategoryDialog(category)}>
+                                      <Edit className="mr-2 h-4 w-4" />
+                                      Edit
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                      className="text-red-600"
+                                      onClick={() => openDeleteCategoryDialog(category._id)}
+                                    >
+                                      <Trash className="mr-2 h-4 w-4" />
+                                      Delete
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </TabsContent>
                 
                 <TabsContent value="sales">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[250px]">Category Name</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead className="w-[120px]">Status</TableHead>
-                        <TableHead className="w-[120px]">Created</TableHead>
-                        <TableHead className="w-[70px]"></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {!salesTypeId || sortedCategories.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={5} className="h-24 text-center">
-                            No categories found. Add your first category above.
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        sortedCategories.map((category) => (
-                          <TableRow key={category._id} className={!category.active ? "bg-muted/50" : ""}>
-                            <TableCell className="font-medium">{category.name}</TableCell>
-                            <TableCell>{category.description || "-"}</TableCell>
-                            <TableCell>
-                              {category.active ? (
-                                <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">Active</Badge>
-                              ) : (
-                                <Badge variant="outline" className="text-gray-500">Inactive</Badge>
-                              )}
-                            </TableCell>
-                            <TableCell>{formatDate(category.createdAt)}</TableCell>
-                            <TableCell>
+                  {/* Mobile view - Card Layout */}
+                  <div className="md:hidden space-y-3">
+                    {!salesTypeId || sortedCategories.length === 0 ? (
+                      <div className="text-center py-8 px-4 border rounded-md">
+                        No categories found. Add your first category above.
+                      </div>
+                    ) : (
+                      sortedCategories.map((category) => (
+                        <Card key={category._id} className={`overflow-hidden ${!category.active ? "bg-muted/30" : ""}`}>
+                          <CardHeader className="pb-2">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <CardTitle className="text-base">{category.name}</CardTitle>
+                                {category.description && (
+                                  <CardDescription className="text-xs line-clamp-2">{category.description}</CardDescription>
+                                )}
+                              </div>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <Button variant="ghost" className="h-8 w-8 p-0">
@@ -1134,7 +1201,7 @@ export default function SettingsPage() {
                                     Edit
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator />
-                                  <DropdownMenuItem 
+                                  <DropdownMenuItem
                                     className="text-red-600"
                                     onClick={() => openDeleteCategoryDialog(category._id)}
                                   >
@@ -1143,46 +1210,110 @@ export default function SettingsPage() {
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="pb-3">
+                            <div className="flex items-center justify-between text-xs">
+                              <div>
+                                {category.active ? (
+                                  <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">Active</Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-gray-500">Inactive</Badge>
+                                )}
+                              </div>
+                              <div className="text-muted-foreground">
+                                Created: {formatDate(category.createdAt)}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Desktop view - Table Layout */}
+                  <div className="hidden md:block">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[250px]">Category Name</TableHead>
+                          <TableHead>Description</TableHead>
+                          <TableHead className="w-[120px]">Status</TableHead>
+                          <TableHead className="w-[120px]">Created</TableHead>
+                          <TableHead className="w-[70px]"></TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {!salesTypeId || sortedCategories.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={5} className="h-24 text-center">
+                              No categories found. Add your first category above.
                             </TableCell>
                           </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
+                        ) : (
+                          sortedCategories.map((category) => (
+                            <TableRow key={category._id} className={!category.active ? "bg-muted/50" : ""}>
+                              <TableCell className="font-medium">{category.name}</TableCell>
+                              <TableCell>{category.description || "-"}</TableCell>
+                              <TableCell>
+                                {category.active ? (
+                                  <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">Active</Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-gray-500">Inactive</Badge>
+                                )}
+                              </TableCell>
+                              <TableCell>{formatDate(category.createdAt)}</TableCell>
+                              <TableCell>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" className="h-8 w-8 p-0">
+                                      <span className="sr-only">Open menu</span>
+                                      <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                    <DropdownMenuItem onClick={() => openEditCategoryDialog(category)}>
+                                      <Edit className="mr-2 h-4 w-4" />
+                                      Edit
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                      className="text-red-600"
+                                      onClick={() => openDeleteCategoryDialog(category._id)}
+                                    >
+                                      <Trash className="mr-2 h-4 w-4" />
+                                      Delete
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </TabsContent>
                 
                 <TabsContent value="service">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[250px]">Category Name</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead className="w-[120px]">Status</TableHead>
-                        <TableHead className="w-[120px]">Created</TableHead>
-                        <TableHead className="w-[70px]"></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {!serviceTypeId || sortedCategories.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={5} className="h-24 text-center">
-                            No categories found. Add your first category above.
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        sortedCategories.map((category) => (
-                          <TableRow key={category._id} className={!category.active ? "bg-muted/50" : ""}>
-                            <TableCell className="font-medium">{category.name}</TableCell>
-                            <TableCell>{category.description || "-"}</TableCell>
-                            <TableCell>
-                              {category.active ? (
-                                <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">Active</Badge>
-                              ) : (
-                                <Badge variant="outline" className="text-gray-500">Inactive</Badge>
-                              )}
-                            </TableCell>
-                            <TableCell>{formatDate(category.createdAt)}</TableCell>
-                            <TableCell>
+                  {/* Mobile view - Card Layout */}
+                  <div className="md:hidden space-y-3">
+                    {!serviceTypeId || sortedCategories.length === 0 ? (
+                      <div className="text-center py-8 px-4 border rounded-md">
+                        No categories found. Add your first category above.
+                      </div>
+                    ) : (
+                      sortedCategories.map((category) => (
+                        <Card key={category._id} className={`overflow-hidden ${!category.active ? "bg-muted/30" : ""}`}>
+                          <CardHeader className="pb-2">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <CardTitle className="text-base">{category.name}</CardTitle>
+                                {category.description && (
+                                  <CardDescription className="text-xs line-clamp-2">{category.description}</CardDescription>
+                                )}
+                              </div>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <Button variant="ghost" className="h-8 w-8 p-0">
@@ -1197,7 +1328,7 @@ export default function SettingsPage() {
                                     Edit
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator />
-                                  <DropdownMenuItem 
+                                  <DropdownMenuItem
                                     className="text-red-600"
                                     onClick={() => openDeleteCategoryDialog(category._id)}
                                   >
@@ -1206,12 +1337,90 @@ export default function SettingsPage() {
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="pb-3">
+                            <div className="flex items-center justify-between text-xs">
+                              <div>
+                                {category.active ? (
+                                  <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">Active</Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-gray-500">Inactive</Badge>
+                                )}
+                              </div>
+                              <div className="text-muted-foreground">
+                                Created: {formatDate(category.createdAt)}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Desktop view - Table Layout */}
+                  <div className="hidden md:block">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[250px]">Category Name</TableHead>
+                          <TableHead>Description</TableHead>
+                          <TableHead className="w-[120px]">Status</TableHead>
+                          <TableHead className="w-[120px]">Created</TableHead>
+                          <TableHead className="w-[70px]"></TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {!serviceTypeId || sortedCategories.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={5} className="h-24 text-center">
+                              No categories found. Add your first category above.
                             </TableCell>
                           </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
+                        ) : (
+                          sortedCategories.map((category) => (
+                            <TableRow key={category._id} className={!category.active ? "bg-muted/50" : ""}>
+                              <TableCell className="font-medium">{category.name}</TableCell>
+                              <TableCell>{category.description || "-"}</TableCell>
+                              <TableCell>
+                                {category.active ? (
+                                  <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">Active</Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-gray-500">Inactive</Badge>
+                                )}
+                              </TableCell>
+                              <TableCell>{formatDate(category.createdAt)}</TableCell>
+                              <TableCell>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" className="h-8 w-8 p-0">
+                                      <span className="sr-only">Open menu</span>
+                                      <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                    <DropdownMenuItem onClick={() => openEditCategoryDialog(category)}>
+                                      <Edit className="mr-2 h-4 w-4" />
+                                      Edit
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                      className="text-red-600"
+                                      onClick={() => openDeleteCategoryDialog(category._id)}
+                                    >
+                                      <Trash className="mr-2 h-4 w-4" />
+                                      Delete
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </TabsContent>
               </Tabs>
               
@@ -1304,106 +1513,106 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="rounded-md border p-6">
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-4">
                   <div className="rounded-full bg-emerald-600 text-white p-3">
-                    <CreditCard className="h-6 w-6" />
+                    <CreditCard className="h-5 w-5 sm:h-6 sm:w-6" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-lg font-medium">Starter Plan</h3>
-                    <p className="text-sm text-muted-foreground">$0 per month</p>
+                    <h3 className="text-base sm:text-lg font-medium">Starter Plan</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground">$0 per month</p>
                   </div>
-                  <Button className="bg-emerald-600 hover:bg-emerald-700" disabled>Current Plan</Button>
+                  <Button className="bg-emerald-600 hover:bg-emerald-700 text-xs sm:text-sm py-1 h-8 sm:h-10" disabled>Current Plan</Button>
                 </div>
                 <div className="mt-4 space-y-2">
                   <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-emerald-600" />
-                    <span className="text-sm">100 receipts per month</span>
+                    <Check className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm">100 receipts per month</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-emerald-600" />
-                    <span className="text-sm">Basic receipt templates</span>
+                    <Check className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm">Basic receipt templates</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-emerald-600" />
-                    <span className="text-sm">Email receipts</span>
+                    <Check className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm">Email receipts</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-emerald-600" />
-                    <span className="text-sm">CSV exports</span>
+                    <Check className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm">CSV exports</span>
                   </div>
                 </div>
               </div>
 
               <div className="rounded-md border p-6 bg-slate-50">
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-4">
                   <div className="rounded-full bg-slate-200 text-slate-700 p-3">
-                    <CreditCard className="h-6 w-6" />
+                    <CreditCard className="h-5 w-5 sm:h-6 sm:w-6" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-lg font-medium">Professional Plan</h3>
-                    <p className="text-sm text-muted-foreground">$29 per month</p>
+                    <h3 className="text-base sm:text-lg font-medium">Professional Plan</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground">$29 per month</p>
                   </div>
-                  <Button variant="outline">Upgrade</Button>
+                  <Button variant="outline" className="text-xs sm:text-sm py-1 h-8 sm:h-10">Upgrade</Button>
                 </div>
                 <div className="mt-4 space-y-2">
                   <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-slate-600" />
-                    <span className="text-sm">Unlimited receipts</span>
+                    <Check className="h-4 w-4 text-slate-600 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm">Unlimited receipts</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-slate-600" />
-                    <span className="text-sm">All receipt templates</span>
+                    <Check className="h-4 w-4 text-slate-600 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm">All receipt templates</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-slate-600" />
-                    <span className="text-sm">Email & WhatsApp receipts</span>
+                    <Check className="h-4 w-4 text-slate-600 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm">Email & WhatsApp receipts</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-slate-600" />
-                    <span className="text-sm">CSV & PDF exports</span>
+                    <Check className="h-4 w-4 text-slate-600 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm">CSV & PDF exports</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-slate-600" />
-                    <span className="text-sm">Advanced analytics</span>
+                    <Check className="h-4 w-4 text-slate-600 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm">Advanced analytics</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-slate-600" />
-                    <span className="text-sm">Priority support</span>
+                    <Check className="h-4 w-4 text-slate-600 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm">Priority support</span>
                   </div>
                 </div>
               </div>
 
               <div className="rounded-md border p-6 bg-slate-50">
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-4">
                   <div className="rounded-full bg-slate-200 text-slate-700 p-3">
-                    <CreditCard className="h-6 w-6" />
+                    <CreditCard className="h-5 w-5 sm:h-6 sm:w-6" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-lg font-medium">Enterprise Plan</h3>
-                    <p className="text-sm text-muted-foreground">Custom pricing</p>
+                    <h3 className="text-base sm:text-lg font-medium">Enterprise Plan</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Custom pricing</p>
                   </div>
-                  <Button variant="outline">Contact Sales</Button>
+                  <Button variant="outline" className="text-xs sm:text-sm py-1 h-8 sm:h-10">Contact Sales</Button>
                 </div>
                 <div className="mt-4 space-y-2">
                   <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-slate-600" />
-                    <span className="text-sm">Everything in Professional</span>
+                    <Check className="h-4 w-4 text-slate-600 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm">Everything in Professional</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-slate-600" />
-                    <span className="text-sm">Custom integrations</span>
+                    <Check className="h-4 w-4 text-slate-600 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm">Custom integrations</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-slate-600" />
-                    <span className="text-sm">Dedicated account manager</span>
+                    <Check className="h-4 w-4 text-slate-600 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm">Dedicated account manager</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-slate-600" />
-                    <span className="text-sm">SSO & advanced security</span>
+                    <Check className="h-4 w-4 text-slate-600 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm">SSO & advanced security</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-slate-600" />
-                    <span className="text-sm">Custom branding</span>
+                    <Check className="h-4 w-4 text-slate-600 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm">Custom branding</span>
                   </div>
                 </div>
               </div>

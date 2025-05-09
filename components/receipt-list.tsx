@@ -28,68 +28,116 @@ export function ReceiptList({ receipts = [] }: ReceiptListProps) {
   
   // Default currency symbol
   const currencySymbol = orgSettings?.currencySettings?.symbol || "$"
+  // Determine the status color based on receipt status
+  const getStatusColor = (status: string) => {
+    return status === "draft"
+      ? "bg-amber-500"
+      : status === "sent"
+        ? "bg-emerald-500"
+        : status === "viewed"
+          ? "bg-blue-500"
+          : "bg-gray-500"
+  }
+
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Receipt Number</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead>Recipient</TableHead>
-            <TableHead>Amount</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="w-[50px]"></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {receipts && receipts.map((receipt) => (
-            <TableRow key={receipt._id}>
-              <TableCell>
-                <Link href={`/receipts/${receipt._id}`} className="font-medium hover:underline">
-                  {receipt.receiptId}
-                </Link>
-              </TableCell>
-              <TableCell>{formatDate(receipt.date)}</TableCell>
-              <TableCell>{receipt.recipientName}</TableCell>
-              <TableCell>{receipt.currency || currencySymbol} {receipt.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
-              <TableCell>
-                <div className="flex items-center">
-                  <div className={`h-2 w-2 rounded-full ${
-                    receipt.status === "draft" 
-                      ? "bg-amber-500" 
-                      : receipt.status === "sent" 
-                        ? "bg-emerald-500" 
-                        : receipt.status === "viewed" 
-                          ? "bg-blue-500"
-                          : "bg-gray-500"
-                  } mr-2`} />
-                  <span className="capitalize">{receipt.status}</span>
-                </div>
-              </TableCell>
-              <TableCell>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                      <span className="sr-only">Open menu</span>
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <Link href={`/receipts/${receipt._id}`}>
-                      <DropdownMenuItem>View details</DropdownMenuItem>
-                    </Link>
-                    <DropdownMenuItem>Download PDF</DropdownMenuItem>
-                    <DropdownMenuItem>Send by email</DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-red-600">Void receipt</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
+    <>
+      {/* Mobile view - Card Layout */}
+      <div className="md:hidden space-y-3">
+        {receipts && receipts.map((receipt) => (
+          <div key={receipt._id} className="rounded-md border p-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <Link href={`/receipts/${receipt._id}`} className="font-medium hover:underline">
+                {receipt.receiptId}
+              </Link>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-8 w-8 p-0">
+                    <span className="sr-only">Open menu</span>
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                  <Link href={`/receipts/${receipt._id}`}>
+                    <DropdownMenuItem>View details</DropdownMenuItem>
+                  </Link>
+                  <DropdownMenuItem>Download PDF</DropdownMenuItem>
+                  <DropdownMenuItem>Send by email</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="text-red-600">Void receipt</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            <div className="text-lg font-bold">
+              {receipt.currency || currencySymbol} {receipt.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+            <div className="flex justify-between text-sm text-muted-foreground">
+              <div>{receipt.recipientName}</div>
+              <div>{formatDate(receipt.date)}</div>
+            </div>
+            <div className="flex items-center pt-1">
+              <div className={`h-2 w-2 rounded-full ${getStatusColor(receipt.status)} mr-2`} />
+              <span className="capitalize text-sm">{receipt.status}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop view - Table Layout */}
+      <div className="hidden md:block rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Receipt Number</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>Recipient</TableHead>
+              <TableHead>Amount</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="w-[50px]"></TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+          </TableHeader>
+          <TableBody>
+            {receipts && receipts.map((receipt) => (
+              <TableRow key={receipt._id}>
+                <TableCell>
+                  <Link href={`/receipts/${receipt._id}`} className="font-medium hover:underline">
+                    {receipt.receiptId}
+                  </Link>
+                </TableCell>
+                <TableCell>{formatDate(receipt.date)}</TableCell>
+                <TableCell>{receipt.recipientName}</TableCell>
+                <TableCell>{receipt.currency || currencySymbol} {receipt.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                <TableCell>
+                  <div className="flex items-center">
+                    <div className={`h-2 w-2 rounded-full ${getStatusColor(receipt.status)} mr-2`} />
+                    <span className="capitalize">{receipt.status}</span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">Open menu</span>
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <Link href={`/receipts/${receipt._id}`}>
+                        <DropdownMenuItem>View details</DropdownMenuItem>
+                      </Link>
+                      <DropdownMenuItem>Download PDF</DropdownMenuItem>
+                      <DropdownMenuItem>Send by email</DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="text-red-600">Void receipt</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </>
   )
 }
