@@ -77,8 +77,10 @@ export default function DashboardPage() {
   const orgCurrency = orgSettings?.currencySettings?.symbol || "$";
   const orgCurrencyCode = orgSettings?.currencySettings?.code || "USD";
 
-  const totalReceipts = recentReceipts?.receipts?.length || 0
-  const totalAmount = recentReceipts?.receipts?.reduce((sum, receipt) => sum + receipt.totalAmount, 0) || 0
+  // Handle potentially missing receipt data with defaults
+  const receipts = recentReceipts?.receipts || []
+  const totalReceipts = receipts.length || 0
+  const totalAmount = receipts.reduce((sum, receipt) => sum + receipt.totalAmount, 0) || 0
 
   return (
     <>
@@ -159,8 +161,8 @@ export default function DashboardPage() {
               Export
             </Button>
           </div>
-          {recentReceipts?.receipts?.length ? (
-            <ReceiptList receipts={recentReceipts.receipts} />
+          {receipts.length > 0 ? (
+            <ReceiptList receipts={receipts} />
           ) : (
             <div className="flex h-[200px] items-center justify-center rounded-md border border-dashed">
               <div className="flex flex-col items-center gap-1 text-center">

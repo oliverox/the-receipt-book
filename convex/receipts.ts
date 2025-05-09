@@ -581,124 +581,141 @@ export const listReceipts = query({
     cursor: v.optional(v.id("receipts")),
   }),
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new ConvexError("Not authenticated");
-    }
+    try {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        // Return empty results instead of throwing when not authenticated
+        return { receipts: [], cursor: undefined };
+      }
 
-    // Get user and organization
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-      .unique();
+      // Get user and organization
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+        .first();
 
-    if (!user || !user.organizationId) {
-      throw new ConvexError("User or organization not found");
-    }
+      if (!user || !user.organizationId) {
+        // Return empty results if user or org not found
+        return { receipts: [], cursor: undefined };
+      }
 
-    // Build query
-    let baseQuery;
-    
-    // Filter by contact if provided
-    if (args.contactId) {
-      baseQuery = ctx.db
-        .query("receipts")
-        .withIndex("by_contact", (q: any) => 
-          q.eq("contactId", args.contactId!).eq("organizationId", user.organizationId)
+      // Build query
+      let baseQuery;
+
+      // Filter by contact if provided
+      if (args.contactId) {
+        baseQuery = ctx.db
+          .query("receipts")
+          .withIndex("by_contact", (q: any) =>
+            q.eq("contactId", args.contactId!).eq("organizationId", user.organizationId)
+          );
+      }
+      // Filter by receipt type if provided
+      else if (args.receiptTypeId) {
+        baseQuery = ctx.db
+          .query("receipts")
+          .withIndex("by_receipt_type", (q: any) =>
+            q.eq("organizationId", user.organizationId).eq("receiptTypeId", args.receiptTypeId!)
+          );
+      }
+      // Otherwise, get all receipts for the organization
+      else {
+        baseQuery = ctx.db
+          .query("receipts")
+          .withIndex("by_organization", (q: any) => q.eq("organizationId", user.organizationId));
+      }
+
+      // Filter by status if provided
+      let filteredQuery = args.status
+        ? baseQuery.filter((q: any) => q.eq(q.field("status"), args.status))
+        : baseQuery;
+
+      // Filter by search if provided
+      if (args.search) {
+        const searchLower = args.search.toLowerCase();
+        filteredQuery = filteredQuery.filter((q: any) =>
+          q.or(
+            q.where((doc: any) => q.includes(q.lower(doc.recipientName), searchLower)),
+            q.where((doc: any) => doc.recipientEmail && q.includes(q.lower(doc.recipientEmail), searchLower)),
+            q.where((doc: any) => q.includes(q.lower(doc.receiptId), searchLower))
+          )
         );
-    }
-    // Filter by receipt type if provided
-    else if (args.receiptTypeId) {
-      baseQuery = ctx.db
-        .query("receipts")
-        .withIndex("by_receipt_type", (q: any) => 
-          q.eq("organizationId", user.organizationId).eq("receiptTypeId", args.receiptTypeId!)
+      }
+
+      // Order by date descending - apply order before pagination
+      const receiptsQuery = filteredQuery.order("desc");
+
+      // Implement cursor-based pagination
+      const limit = args.limit ?? 10;
+      let receiptsWithPagination = receiptsQuery;
+      if (args.cursor) {
+        receiptsWithPagination = receiptsQuery.filter((q: any) =>
+          q.lt(q.field("_id"), args.cursor!)
         );
-    }
-    // Otherwise, get all receipts for the organization
-    else {
-      baseQuery = ctx.db
-        .query("receipts")
-        .withIndex("by_organization", (q: any) => q.eq("organizationId", user.organizationId));
-    }
+      }
 
-    // Filter by status if provided
-    let filteredQuery = args.status 
-      ? baseQuery.filter((q: any) => q.eq(q.field("status"), args.status))
-      : baseQuery;
+      // Execute query
+      const receipts = await receiptsWithPagination.take(limit + 1);
 
-    // Filter by search if provided
-    if (args.search) {
-      const searchLower = args.search.toLowerCase();
-      filteredQuery = filteredQuery.filter((q: any) => 
-        q.or(
-          q.where((doc: any) => q.includes(q.lower(doc.recipientName), searchLower)),
-          q.where((doc: any) => doc.recipientEmail && q.includes(q.lower(doc.recipientEmail), searchLower)),
-          q.where((doc: any) => q.includes(q.lower(doc.receiptId), searchLower))
-        )
+      // Set up next cursor
+      let nextCursor;
+      if (receipts.length > limit) {
+        nextCursor = receipts.pop()?._id;
+      }
+
+      // If no receipts found, return empty array early
+      if (receipts.length === 0) {
+        return { receipts: [], cursor: undefined };
+      }
+
+      // Enrich with creator and receipt type information
+      const enrichedReceipts = await Promise.all(
+        receipts.map(async (receipt) => {
+          // Handle missing creator gracefully
+          let creator;
+          try {
+            creator = await ctx.db.get(receipt.createdBy);
+          } catch (e) {
+            console.error("Error getting creator:", e);
+          }
+
+          // Handle missing receipt type gracefully
+          let receiptType;
+          try {
+            receiptType = await ctx.db.get(receipt.receiptTypeId);
+          } catch (e) {
+            console.error("Error getting receipt type:", e);
+          }
+
+          return {
+            _id: receipt._id,
+            receiptId: receipt.receiptId,
+            recipientName: receipt.recipientName,
+            recipientEmail: receipt.recipientEmail,
+            totalAmount: receipt.totalAmount,
+            currency: receipt.currency,
+            date: receipt.date,
+            status: receipt.status,
+            contactId: receipt.contactId,
+            receiptType: receiptType
+              ? { _id: receiptType._id, name: receiptType.name }
+              : { _id: receipt.receiptTypeId, name: "Unknown" },
+            createdBy: creator
+              ? { _id: creator._id, name: creator.name }
+              : { _id: receipt.createdBy, name: "Unknown" },
+          };
+        })
       );
+
+      return {
+        receipts: enrichedReceipts,
+        cursor: nextCursor,
+      };
+    } catch (error) {
+      console.error("Error in listReceipts:", error);
+      // Return empty result set instead of throwing
+      return { receipts: [], cursor: undefined };
     }
-
-    // Order by date descending - apply order before pagination
-    const receiptsQuery = filteredQuery.order("desc");
-
-    // Implement cursor-based pagination
-    const limit = args.limit ?? 10;
-    let receiptsWithPagination = receiptsQuery;
-    if (args.cursor) {
-      receiptsWithPagination = receiptsQuery.filter((q: any) => 
-        q.lt(q.field("_id"), args.cursor!)
-      );
-    }
-
-    // Execute query
-    const receipts = await receiptsWithPagination.take(limit + 1);
-
-    // Set up next cursor
-    let nextCursor;
-    if (receipts.length > limit) {
-      nextCursor = receipts.pop()?._id;
-    }
-
-    // Enrich with creator and receipt type information
-    const enrichedReceipts = await Promise.all(
-      receipts.map(async (receipt) => {
-        const creator = await ctx.db.get(receipt.createdBy);
-        if (!creator) {
-          throw new ConvexError("Creator not found");
-        }
-
-        const receiptType = await ctx.db.get(receipt.receiptTypeId);
-        if (!receiptType) {
-          throw new ConvexError("Receipt type not found");
-        }
-
-        return {
-          _id: receipt._id,
-          receiptId: receipt.receiptId,
-          recipientName: receipt.recipientName,
-          recipientEmail: receipt.recipientEmail,
-          totalAmount: receipt.totalAmount,
-          currency: receipt.currency,
-          date: receipt.date,
-          status: receipt.status,
-          contactId: receipt.contactId,
-          receiptType: {
-            _id: receiptType._id,
-            name: receiptType.name,
-          },
-          createdBy: {
-            _id: creator._id,
-            name: creator.name,
-          },
-        };
-      })
-    );
-
-    return {
-      receipts: enrichedReceipts,
-      cursor: nextCursor,
-    };
   },
 });
 
