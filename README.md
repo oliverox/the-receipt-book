@@ -1,10 +1,10 @@
-# The Receipt Book
+# Digital Receipt Pro
 
 A flexible, generic receipt management system designed to support various types of receipts including donations, sales, and services - perfect for non-profit organizations, religious institutions, retail businesses, and service providers.
 
 ## Overview
 
-The Receipt Book is a full-stack web application built to streamline the receipt management process. It helps organizations maintain accurate records, organize recipient information, and generate professional receipts for different purposes including:
+Digital Receipt Pro is a full-stack web application built to streamline the receipt management process. It helps organizations maintain accurate records, organize recipient information, and generate professional receipts for different purposes including:
 
 - **Donation receipts** for religious organizations and non-profits
 - **Sales receipts** for retail businesses
@@ -66,8 +66,8 @@ This application is built using modern web technologies:
 
 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/the-receipt-book.git
-cd the-receipt-book
+git clone https://github.com/yourusername/digital-receipt-pro.git
+cd digital-receipt-pro
 ```
 
 2. Install dependencies

@@ -1,5 +1,5 @@
 /**
- * Type definitions for The Receipt Book application
+ * Type definitions for Digital Receipt Pro application
  * This file contains all the shared type definitions used across the application
  */
 
