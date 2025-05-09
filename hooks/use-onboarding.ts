@@ -31,9 +31,19 @@ export function useOnboarding() {
         
         // If we can't find the user in Convex, create them
         if (!userProfile) {
+          // Ensure we have required user data before making the API call
+          const userName = user?.fullName;
+          const userEmail = user?.primaryEmailAddress?.emailAddress;
+
+          if (!userName || !userEmail) {
+            console.warn("Missing user data for onboarding:", { userName, userEmail });
+            // Wait for user data to be available
+            return;
+          }
+
           await getOrCreateUser({
-            name: user?.fullName || "New User",
-            email: user?.primaryEmailAddress?.emailAddress || "",
+            name: userName,
+            email: userEmail,
           });
           // Return early and wait for the userProfile to load
           return;
@@ -41,11 +51,26 @@ export function useOnboarding() {
         
         // If user doesn't have an organization, create one
         if (userProfile && !userProfile.organizationId) {
-          await createOrganization({
-            name: user?.organizationMemberships?.[0]?.organization.name || "My Organization",
-          });
-          // Return early and wait for the userProfile to refresh with org info
-          return;
+          try {
+            // First attempt to get org name from Clerk
+            let orgName = "My Organization";
+
+            if (user?.organizationMemberships &&
+                user.organizationMemberships.length > 0 &&
+                user.organizationMemberships[0]?.organization?.name) {
+              orgName = user.organizationMemberships[0].organization.name;
+            }
+
+            await createOrganization({
+              name: orgName,
+            });
+            // Return early and wait for the userProfile to refresh with org info
+            return;
+          } catch (orgError) {
+            console.error("Error creating organization:", orgError);
+            // Continue with onboarding even if organization creation fails
+            // The user can create an organization later
+          }
         }
         
         setIsOnboardingComplete(true);

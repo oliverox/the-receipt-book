@@ -59,7 +59,7 @@ export const getOrCreateUser = mutation({
 
     return {
       userId: newUserId,
-      organizationId: undefined,
+      organizationId: tempOrgId,
     };
   },
 });
@@ -181,7 +181,7 @@ export const createOrganization = mutation({
  */
 export const getUserProfile = query({
   args: {},
-  returns: v.object({
+  returns: v.optional(v.object({
     _id: v.id("users"),
     name: v.string(),
     email: v.string(),
@@ -192,42 +192,51 @@ export const getUserProfile = query({
       name: v.string(),
       subscriptionTier: v.optional(v.string()),
     })),
-  }),
+  })),
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new ConvexError("Not authenticated");
+    try {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) {
+        // Return null instead of throwing an error
+        // This allows the client to handle auth state gracefully
+        return null;
+      }
+
+      const userId = identity.subject;
+
+      // Get user
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_clerk_id", (q) => q.eq("clerkId", userId))
+        .first(); // Use first() instead of unique() to avoid throwing errors
+
+      if (!user) {
+        // Return null instead of throwing an error
+        return null;
+      }
+
+      // Get organization if it exists
+      let organization;
+      if (user.organizationId) {
+        organization = await ctx.db.get(user.organizationId);
+      }
+
+      return {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        organizationId: user.organizationId,
+        organization: organization ? {
+          _id: organization._id,
+          name: organization.name,
+          subscriptionTier: organization.subscriptionTier,
+        } : undefined,
+      };
+    } catch (error) {
+      // Log the error but don't throw to prevent client crashes
+      console.error("Error in getUserProfile:", error);
+      return null;
     }
-
-    const userId = identity.subject;
-    
-    // Get user
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", userId))
-      .unique();
-
-    if (!user) {
-      throw new ConvexError("User not found");
-    }
-
-    // Get organization if it exists
-    let organization;
-    if (user.organizationId) {
-      organization = await ctx.db.get(user.organizationId);
-    }
-
-    return {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      organizationId: user.organizationId,
-      organization: organization ? {
-        _id: organization._id,
-        name: organization.name,
-        subscriptionTier: organization.subscriptionTier,
-      } : undefined,
-    };
   },
 });
