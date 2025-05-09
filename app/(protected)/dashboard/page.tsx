@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useUser } from "@clerk/nextjs"
-import { useQuery } from "convex/react"
+import { useQuery, useMutation } from "convex/react"
 import { api } from "@/convex/_generated/api"
 import { 
   CalendarDays, 
@@ -30,11 +30,28 @@ export default function DashboardPage() {
   const [isInitializing, setIsInitializing] = useState(true)
   
   const userProfile = useQuery(api.auth.getUserProfile)
-  const recentReceipts = useQuery(api.receipts.listReceipts, { 
-    limit: 10 
+  const recentReceipts = useQuery(api.receipts.listReceipts, {
+    limit: 10
   })
-  
+
   const orgSettings = useQuery(api.settings.getOrganizationSettings)
+  const createDefaultSettings = useMutation(api.settings.createDefaultSettings)
+
+  // If orgSettings is null, try to create default settings
+  useEffect(() => {
+    const initializeSettings = async () => {
+      if (userProfile?.organizationId && orgSettings === null) {
+        try {
+          await createDefaultSettings();
+          console.log("Created default settings");
+        } catch (error) {
+          console.error("Error creating default settings:", error);
+        }
+      }
+    };
+
+    initializeSettings();
+  }, [userProfile, orgSettings, createDefaultSettings]);
 
   // Handle user onboarding instead of redirecting
   // (redirection is now handled by layout.tsx)

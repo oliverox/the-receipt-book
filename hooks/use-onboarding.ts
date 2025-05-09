@@ -17,6 +17,7 @@ export function useOnboarding() {
   // Convex operations
   const getOrCreateUser = useMutation(api.auth.getOrCreateUser);
   const createOrganization = useMutation(api.auth.createOrganization);
+  const createDefaultSettings = useMutation(api.settings.createDefaultSettings);
   const userProfile = useQuery(api.auth.getUserProfile);
   
   useEffect(() => {
