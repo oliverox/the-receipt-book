@@ -45,10 +45,22 @@ export default function LandingPage() {
               How It Works
             </Link>
             <Link
+              href="#business-impact"
+              className="text-sm font-medium hover:text-emerald-600 transition-colors"
+            >
+              Business Impact
+            </Link>
+            <Link
               href="#pricing"
               className="text-sm font-medium hover:text-emerald-600 transition-colors"
             >
               Pricing
+            </Link>
+            <Link
+              href="/blog"
+              className="text-sm font-medium hover:text-emerald-600 transition-colors"
+            >
+              Blog
             </Link>
           </nav>
           <div className="flex items-center gap-4">
@@ -84,8 +96,8 @@ export default function LandingPage() {
               <span className="text-emerald-600">Digital Receipt Pro</span>
             </h1>
             <p className="mt-6 max-w-3xl text-lg md:text-xl text-gray-500">
-              Streamline your business with professional digital receipts —
-              create, send, and track instantly with one click.
+              Digital receipts, real insights — Replace paper trails with digital insights that drive
+              business decisions.
             </p>
             <div className="mt-10 flex flex-col sm:flex-row gap-4">
               {isSignedIn ? (
@@ -155,7 +167,8 @@ export default function LandingPage() {
                   transactions in one secure place.
                 </p>
               </div>
-              <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm">
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm border-2 border-emerald-600 relative">
+                <span className="absolute top-2 right-2 text-xs text-amber-600 font-medium">Coming Soon</span>
                 <svg
                   className="h-10 w-10 text-emerald-600 mb-4"
                   fill="currentColor"
@@ -164,12 +177,40 @@ export default function LandingPage() {
                 >
                   <path d="M5 21h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2zM5 5h3.5v14H5V5zm5 0h3.5v14H10V5zm5 0h4v14h-4V5z" />
                 </svg>
-                <h3 className="text-xl font-bold mb-2">Business Analytics</h3>
+                <h3 className="text-xl font-bold mb-2">AI-Powered Analytics</h3>
                 <p className="text-muted-foreground">
-                  Track sales trends, monitor financial activity, and gain
-                  valuable business insights with built-in reporting and
-                  visualization tools.
+                  Transform receipt data into actionable business intelligence. Visualize spending patterns,
+                  predict future trends, and identify cost-saving opportunities with our
+                  advanced analytics dashboard.
                 </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="business-impact" className="py-20 bg-emerald-50 dark:bg-emerald-900/20">
+          <div className="mx-auto max-w-7xl w-full px-4 sm:px-6">
+            <h2 className="text-3xl font-bold text-center mb-6">
+              Real Business Impact
+            </h2>
+            <p className="text-center text-lg mb-12 max-w-3xl mx-auto">
+              See how Digital Receipt Pro transforms your operations and delivers measurable ROI
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm text-center">
+                <h3 className="text-4xl font-bold text-emerald-600 mb-2">40%</h3>
+                <p className="font-semibold mb-2">Time Saved</p>
+                <p className="text-muted-foreground">Reduce manual receipt processing time by automating document management</p>
+              </div>
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm text-center">
+                <h3 className="text-4xl font-bold text-emerald-600 mb-2">25%</h3>
+                <p className="font-semibold mb-2">Cost Reduction</p>
+                <p className="text-muted-foreground">Identify spending patterns and opportunities to reduce unnecessary expenses</p>
+              </div>
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm text-center">
+                <h3 className="text-4xl font-bold text-emerald-600 mb-2">100%</h3>
+                <p className="font-semibold mb-2">Audit Readiness</p>
+                <p className="text-muted-foreground">Always have your receipt records organized, searchable and available for audits</p>
               </div>
             </div>
           </div>
@@ -342,7 +383,7 @@ export default function LandingPage() {
             <span className="text-xl font-bold">Digital Receipt Pro</span>
           </div>
           <div className="text-center md:text-right text-sm text-muted-foreground">
-            <p>© 2024 Digital Receipt Pro. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} Digital Receipt Pro. All rights reserved.</p>
             <p className="mt-1">
               <Link href="#" className="hover:underline">
                 Privacy Policy

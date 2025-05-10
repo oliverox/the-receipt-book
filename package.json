@@ -1,6 +1,6 @@
 {
   "name": "digital-receipt-pro",
-  "version": "0.1.2",
+  "version": "1.1.2",
   "private": true,
   "scripts": {
     "dev": "npm-run-all --parallel dev:frontend dev:backend",

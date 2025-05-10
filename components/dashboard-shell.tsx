@@ -1,24 +1,29 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useQuery } from "convex/react"
-import { api } from "@/convex/_generated/api"
-import Image from "next/image"
+import type React from "react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import Image from "next/image";
 
-import { DashboardSidebar } from "@/components/dashboard-sidebar"
-import { UserNav } from "@/components/user-nav"
-import { SidebarInset, SidebarProvider, SidebarHeader, SidebarTrigger } from "@/components/ui/sidebar"
+import { DashboardSidebar } from "@/components/dashboard-sidebar";
+import { UserNav } from "@/components/user-nav";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarHeader,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 
 interface DashboardShellProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 export function DashboardShell({ children }: DashboardShellProps) {
-  const userProfile = useQuery(api.auth.getUserProfile)
-  
+  const userProfile = useQuery(api.auth.getUserProfile);
+
   // Determine organization name
-  const orgName = userProfile?.organization?.name || "Digital Receipt Pro"
-  
+  const orgName = userProfile?.organization?.name || "Digital Receipt Pro";
+
   return (
     <div className="flex min-h-screen flex-col">
       <SidebarProvider defaultOpen={true}>
@@ -33,7 +38,9 @@ export function DashboardShell({ children }: DashboardShellProps) {
                   height={24}
                   className="h-6 w-auto object-contain group-data-[state=collapsed]:h-6 group-data-[state=collapsed]:w-6"
                 />
-                <span className="font-bold group-data-[state=collapsed]:hidden">Digital Receipt Pro</span>
+                <span className="font-bold group-data-[state=collapsed]:hidden text-nowrap">
+                  Digital Receipt Pro
+                </span>
               </div>
             </SidebarHeader>
           </DashboardSidebar>
@@ -54,5 +61,5 @@ export function DashboardShell({ children }: DashboardShellProps) {
         </div>
       </SidebarProvider>
     </div>
-  )
+  );
 }
