@@ -2,14 +2,22 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useAuth } from "@clerk/nextjs";
 
-import { Button } from "@/components/ui/button";
+import { BlogHeader } from "@/components/blog-header";
+import { BlogFooter } from "@/components/blog-footer";
 
 export default function BlogPage() {
-  const { isSignedIn } = useAuth();
   
   const blogPosts = [
+    {
+      id: "what-is-business-receipt",
+      title: "What is a Business Receipt? A Complete Guide",
+      excerpt: "Understanding the essentials of business receipts, their legal importance, and how digital technologies are transforming receipt management for modern businesses.",
+      date: "May 12, 2025",
+      readTime: "4 min read",
+      image: "/blog/business-receipt.jpg",
+      category: "Fundamentals"
+    },
     {
       id: "paperless-receipts-guide",
       title: "The Complete Guide to Going Paperless with Digital Receipts",
@@ -41,71 +49,17 @@ export default function BlogPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Link href="/">
-              <Image
-                src="/logo.png"
-                alt="Digital Receipt Pro Logo"
-                width={486}
-                height={569}
-                className="h-8 w-auto"
-              />
-            </Link>
-            <span className="text-xl font-bold">Digital Receipt Pro</span>
-          </div>
-          <nav className="hidden md:flex gap-6">
-            <Link
-              href="/"
-              className="text-sm font-medium hover:text-emerald-600 transition-colors"
-            >
-              Home
-            </Link>
-            <Link
-              href="/blog"
-              className="text-sm font-medium text-emerald-600 transition-colors"
-            >
-              Blog
-            </Link>
-            <Link
-              href="/#pricing"
-              className="text-sm font-medium hover:text-emerald-600 transition-colors"
-            >
-              Pricing
-            </Link>
-          </nav>
-          <div className="flex items-center gap-4">
-            {isSignedIn ? (
-              <Link href="/dashboard">
-                <Button className="bg-emerald-600 hover:bg-emerald-700">
-                  Dashboard
-                </Button>
-              </Link>
-            ) : (
-              <>
-                <Link href="/sign-in">
-                  <Button variant="outline">Log In</Button>
-                </Link>
-                <Link href="/sign-up">
-                  <Button className="bg-emerald-600 hover:bg-emerald-700">
-                    Sign Up
-                  </Button>
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      </header>
+      <BlogHeader />
       <main className="flex-1">
-        <section className="py-12 md:py-16 bg-slate-50 dark:bg-slate-900">
-          <div className="mx-auto max-w-7xl w-full px-4 sm:px-6">
+        <section className="py-12 md:py-16 bg-gradient-to-br from-emerald-50 to-slate-100 dark:from-emerald-950/30 dark:to-slate-900 relative overflow-hidden">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNSIgY3k9IjUiIHI9IjEiIGZpbGw9IiMxMGI5ODEiIGZpbGwtb3BhY2l0eT0iMC4zIi8+PC9zdmc+')] opacity-90"></div>
+          <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 relative z-10">
             <div className="flex flex-col items-center text-center mb-12">
-              <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
-                Receipt Reimagined
+              <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4 text-emerald-950 dark:text-emerald-50">
+                Receipts Reimagined
               </h1>
-              <p className="max-w-3xl text-lg text-gray-500">
-                Expert tips, guides and insights to help you manage receipts better, 
+              <p className="max-w-3xl text-lg text-emerald-800 dark:text-emerald-200">
+                Expert tips, guides and insights to help you manage receipts better,
                 go paperless, and gain business intelligence from your transactions.
               </p>
             </div>
@@ -123,6 +77,7 @@ export default function BlogPage() {
                         src={post.image}
                         alt={post.title}
                         fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         className="object-cover"
                       />
                     </div>
@@ -150,34 +105,7 @@ export default function BlogPage() {
           </div>
         </section>
       </main>
-      <footer className="border-t py-10">
-        <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center">
-          <div className="flex items-center gap-2 mb-4 md:mb-0">
-            <Link href="/">
-              <Image
-                src="/logo.png"
-                alt="Digital Receipt Pro Logo"
-                width={486}
-                height={569}
-                className="h-8 w-auto"
-              />
-            </Link>
-            <span className="text-xl font-bold">Digital Receipt Pro</span>
-          </div>
-          <div className="text-center md:text-right text-sm text-muted-foreground">
-            <p>© {new Date().getFullYear()} Digital Receipt Pro. All rights reserved.</p>
-            <p className="mt-1">
-              <Link href="#" className="hover:underline">
-                Privacy Policy
-              </Link>{" "}
-              ·{" "}
-              <Link href="#" className="hover:underline">
-                Terms of Service
-              </Link>
-            </p>
-          </div>
-        </div>
-      </footer>
+      <BlogFooter />
     </div>
   );
 }

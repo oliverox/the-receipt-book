@@ -3,73 +3,16 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
-import { useAuth } from "@clerk/nextjs";
 
 import { Button } from "@/components/ui/button";
+import { BlogHeader } from "@/components/blog-header";
+import { BlogFooter } from "@/components/blog-footer";
 
 export default function BlogPostPage() {
-  const { isSignedIn } = useAuth();
-  
-  // Set proper meta tags for SEO in the future
   
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Link href="/">
-              <Image
-                src="/logo.png"
-                alt="Digital Receipt Pro Logo"
-                width={486}
-                height={569}
-                className="h-8 w-auto"
-              />
-            </Link>
-            <span className="text-xl font-bold">Digital Receipt Pro</span>
-          </div>
-          <nav className="hidden md:flex gap-6">
-            <Link
-              href="/"
-              className="text-sm font-medium hover:text-emerald-600 transition-colors"
-            >
-              Home
-            </Link>
-            <Link
-              href="/blog"
-              className="text-sm font-medium hover:text-emerald-600 transition-colors"
-            >
-              Blog
-            </Link>
-            <Link
-              href="/#pricing"
-              className="text-sm font-medium hover:text-emerald-600 transition-colors"
-            >
-              Pricing
-            </Link>
-          </nav>
-          <div className="flex items-center gap-4">
-            {isSignedIn ? (
-              <Link href="/dashboard">
-                <Button className="bg-emerald-600 hover:bg-emerald-700">
-                  Dashboard
-                </Button>
-              </Link>
-            ) : (
-              <>
-                <Link href="/sign-in">
-                  <Button variant="outline">Log In</Button>
-                </Link>
-                <Link href="/sign-up">
-                  <Button className="bg-emerald-600 hover:bg-emerald-700">
-                    Sign Up
-                  </Button>
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      </header>
+      <BlogHeader />
       
       <main className="flex-1 bg-white dark:bg-gray-950">
         <article className="py-12">
@@ -101,6 +44,7 @@ export default function BlogPostPage() {
                   src="/blog/paperless-guide.jpg"
                   alt="The Complete Guide to Going Paperless with Digital Receipts"
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   className="object-cover"
                   priority
                 />
@@ -278,34 +222,7 @@ export default function BlogPostPage() {
         </article>
       </main>
       
-      <footer className="border-t py-10">
-        <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center">
-          <div className="flex items-center gap-2 mb-4 md:mb-0">
-            <Link href="/">
-              <Image
-                src="/logo.png"
-                alt="Digital Receipt Pro Logo"
-                width={486}
-                height={569}
-                className="h-8 w-auto"
-              />
-            </Link>
-            <span className="text-xl font-bold">Digital Receipt Pro</span>
-          </div>
-          <div className="text-center md:text-right text-sm text-muted-foreground">
-            <p>© {new Date().getFullYear()} Digital Receipt Pro. All rights reserved.</p>
-            <p className="mt-1">
-              <Link href="#" className="hover:underline">
-                Privacy Policy
-              </Link>{" "}
-              ·{" "}
-              <Link href="#" className="hover:underline">
-                Terms of Service
-              </Link>
-            </p>
-          </div>
-        </div>
-      </footer>
+      <BlogFooter />
     </div>
   );
 }
