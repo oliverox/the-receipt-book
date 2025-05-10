@@ -133,16 +133,6 @@ export const createOrganization = mutation({
       // Continue anyway, we can create them later if needed
     }
 
-    // Create a default fund category
-    await ctx.db.insert("fundCategories", {
-      name: "General",
-      description: "General purpose fund",
-      organizationId,
-      active: true,
-      createdBy: user._id,
-      createdAt: Date.now(),
-    });
-
     // Create a default receipt type (Donation)
     const donationTypeId = await ctx.db.insert("receiptTypes", {
       name: "Donation",
@@ -168,6 +158,17 @@ export const createOrganization = mutation({
       createdBy: user._id,
       createdAt: Date.now(),
       updatedAt: Date.now(),
+    });
+
+    // Create a default item category for the donation receipt type
+    await ctx.db.insert("itemCategories", {
+      name: "General",
+      description: "General purpose category",
+      organizationId,
+      receiptTypeId: donationTypeId,
+      active: true,
+      createdBy: user._id,
+      createdAt: Date.now(),
     });
 
     return {

@@ -30,16 +30,6 @@ export default defineSchema({
     .index("by_email", ["email"])
     .index("by_organization", ["organizationId"]),
 
-  // Fund categories for contributions
-  fundCategories: defineTable({
-    name: v.string(),
-    description: v.optional(v.string()),
-    organizationId: v.id("organizations"),
-    active: v.boolean(),
-    createdBy: v.id("users"),
-    createdAt: v.number(), // Timestamp
-  }).index("by_organization", ["organizationId"]),
-
   // Contact types for classification
   contactTypes: defineTable({
     name: v.string(), // E.g., "Individual", "Institution", "Corporate", etc.

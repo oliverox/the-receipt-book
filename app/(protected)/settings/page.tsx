@@ -424,11 +424,11 @@ export default function SettingsPage() {
     setIsLoading(true)
     
     try {
-      // Handle custom currency code
+      // Handle currency code and symbol
       let finalCurrencyCode = currencyCode;
       let finalCurrencySymbol = currencySymbol;
-      
-      // If it's a custom currency, use the custom code
+
+      // If it's a custom currency, use the custom code and symbol
       if (finalCurrencyCode === "CUSTOM") {
         if (customCurrencyCode && customCurrencyCode.trim() !== "") {
           finalCurrencyCode = customCurrencyCode.trim();
@@ -437,15 +437,55 @@ export default function SettingsPage() {
           finalCurrencyCode = "USD";
           finalCurrencySymbol = "$";
         }
+      } else {
+        // For standard currencies, set the appropriate symbol
+        switch (finalCurrencyCode) {
+          case "USD":
+            finalCurrencySymbol = "$";
+            break;
+          case "EUR":
+            finalCurrencySymbol = "€";
+            break;
+          case "GBP":
+            finalCurrencySymbol = "£";
+            break;
+          case "CAD":
+            finalCurrencySymbol = "C$";
+            break;
+          case "AUD":
+            finalCurrencySymbol = "A$";
+            break;
+          case "SGD":
+            finalCurrencySymbol = "$";
+            break;
+          case "MUR":
+            finalCurrencySymbol = "Rs";
+            break;
+          case "INR":
+            finalCurrencySymbol = "₹";
+            break;
+          case "JPY":
+            finalCurrencySymbol = "¥";
+            break;
+          case "CNY":
+            finalCurrencySymbol = "¥";
+            break;
+          case "NZD":
+            finalCurrencySymbol = "NZ$";
+            break;
+          default:
+            // Keep existing symbol if none of the above
+            break;
+        }
       }
       
-      // Update organization profile
+      // Update organisation profile
       await updateOrgProfile({
         name: orgName,
         // Note: logo would be handled separately with file upload
       })
       
-      // Update organization settings
+      // Update organisation settings
       await updateOrgSettings({
         emailSettings: {
           senderName: orgName,
@@ -470,7 +510,7 @@ export default function SettingsPage() {
       
       toast({
         title: "Settings saved",
-        description: "Your organization settings have been updated successfully.",
+        description: "Your organisation settings have been updated successfully.",
       })
     } catch (error) {
       console.error("Error saving settings:", error)
@@ -491,7 +531,7 @@ export default function SettingsPage() {
     try {
       // Keep the receipt format with the {PREFIX} placeholder
 
-      // Update organization settings
+      // Update organisation settings
       await updateOrgSettings({
         receiptNumberingFormat: receiptFormat,
         receiptPrefix: receiptPrefix,
@@ -584,10 +624,10 @@ export default function SettingsPage() {
   
   return (
     <>
-      <DashboardHeader heading="Settings" text="Manage your organization and receipt settings." />
+      <DashboardHeader heading="Settings" text="Manage your organisation and receipt settings." />
       <Tabs defaultValue={defaultTab} className="space-y-4">
         <TabsList className="flex flex-wrap w-full overflow-auto">
-          <TabsTrigger value="organization" className="text-xs sm:text-sm">Organization</TabsTrigger>
+          <TabsTrigger value="organization" className="text-xs sm:text-sm">Organisation</TabsTrigger>
           <TabsTrigger value="receipt" className="text-xs sm:text-sm">Receipt</TabsTrigger>
           <TabsTrigger value="templates" className="text-xs sm:text-sm">Templates</TabsTrigger>
           <TabsTrigger value="categories" className="text-xs sm:text-sm">Categories</TabsTrigger>
@@ -596,12 +636,12 @@ export default function SettingsPage() {
         <TabsContent value="organization" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Organization Information</CardTitle>
-              <CardDescription>Update your organization&apos;s details and contact information.</CardDescription>
+              <CardTitle>Organisation Information</CardTitle>
+              <CardDescription>Update your organisation&apos;s details and contact information.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="org-name">Organization Name</Label>
+                <Label htmlFor="org-name">Organisation Name</Label>
                 <Input 
                   id="org-name" 
                   value={orgName} 
@@ -645,24 +685,69 @@ export default function SettingsPage() {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="currency-code">Currency</Label>
-                    <select
-                      id="currency-code"
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    <Select
                       value={currencyCode}
-                      onChange={(e) => setCurrencyCode(e.target.value)}
+                      onValueChange={(newCurrencyCode) => {
+                        setCurrencyCode(newCurrencyCode);
+                        // Automatically update currency symbol when a standard currency is selected
+                        if (newCurrencyCode !== "CUSTOM") {
+                          switch (newCurrencyCode) {
+                            case "USD":
+                              setCurrencySymbol("$");
+                              break;
+                            case "EUR":
+                              setCurrencySymbol("€");
+                              break;
+                            case "GBP":
+                              setCurrencySymbol("£");
+                              break;
+                            case "CAD":
+                              setCurrencySymbol("C$");
+                              break;
+                            case "AUD":
+                              setCurrencySymbol("A$");
+                              break;
+                            case "SGD":
+                              setCurrencySymbol("$");
+                              break;
+                            case "MUR":
+                              setCurrencySymbol("Rs");
+                              break;
+                            case "INR":
+                              setCurrencySymbol("₹");
+                              break;
+                            case "JPY":
+                              setCurrencySymbol("¥");
+                              break;
+                            case "CNY":
+                              setCurrencySymbol("¥");
+                              break;
+                            case "NZD":
+                              setCurrencySymbol("NZ$");
+                              break;
+                          }
+                        }
+                      }}
                       disabled={isDataLoading || isLoading}
                     >
-                      <option value="USD">US Dollar (USD)</option>
-                      <option value="EUR">Euro (EUR)</option>
-                      <option value="GBP">British Pound (GBP)</option>
-                      <option value="CAD">Canadian Dollar (CAD)</option>
-                      <option value="AUD">Australian Dollar (AUD)</option>
-                      <option value="INR">Indian Rupee (INR)</option>
-                      <option value="JPY">Japanese Yen (JPY)</option>
-                      <option value="CNY">Chinese Yuan (CNY)</option>
-                      <option value="NZD">New Zealand Dollar (NZD)</option>
-                      <option value="CUSTOM">Other / Custom</option>
-                    </select>
+                      <SelectTrigger id="currency-code" className="w-full">
+                        <SelectValue placeholder="Select currency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="USD">US Dollar (USD)</SelectItem>
+                        <SelectItem value="EUR">Euro (EUR)</SelectItem>
+                        <SelectItem value="GBP">British Pound (GBP)</SelectItem>
+                        <SelectItem value="CAD">Canadian Dollar (CAD)</SelectItem>
+                        <SelectItem value="AUD">Australian Dollar (AUD)</SelectItem>
+                        <SelectItem value="SGD">Singapore Dollar (SGD)</SelectItem>
+                        <SelectItem value="MUR">Mauritian Rupee (MUR)</SelectItem>
+                        <SelectItem value="INR">Indian Rupee (INR)</SelectItem>
+                        <SelectItem value="JPY">Japanese Yen (JPY)</SelectItem>
+                        <SelectItem value="CNY">Chinese Yuan (CNY)</SelectItem>
+                        <SelectItem value="NZD">New Zealand Dollar (NZD)</SelectItem>
+                        <SelectItem value="CUSTOM">Other / Custom</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="currency-symbol">Symbol</Label>
@@ -716,7 +801,7 @@ export default function SettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Receipt Configuration</CardTitle>
-              <CardDescription>Customize how your receipts are generated and numbered.</CardDescription>
+              <CardDescription>Customise how your receipts are generated and numbered.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -878,7 +963,7 @@ export default function SettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Receipt Templates</CardTitle>
-              <CardDescription>Choose and customize the appearance of your receipts.</CardDescription>
+              <CardDescription>Choose and customise the appearance of your receipts.</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
@@ -1458,7 +1543,7 @@ export default function SettingsPage() {
               </Tabs>
               
               <p className="text-xs text-muted-foreground mt-4">
-                Categories are used to organize line items on your receipts. You can create different categories for each receipt type.
+                Categories are used to organise line items on your receipts. You can create different categories for each receipt type.
               </p>
             </CardContent>
           </Card>

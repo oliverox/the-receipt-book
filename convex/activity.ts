@@ -102,26 +102,6 @@ export const getRecentActivity = query({
             // Ignore errors
             console.error("Error fetching receipt details:", error);
           }
-        } else if (activity.resourceType === "fundCategories") {
-          try {
-            // Check if it looks like a Convex ID
-            if (activity.resourceId.indexOf('fund') !== -1) {
-              // This is a type assertion to tell TypeScript this string is actually an ID
-              const categoryId = activity.resourceId as unknown as Id<"fundCategories">;
-              const categoryDoc = await ctx.db.get(categoryId);
-              
-              if (categoryDoc) {
-                // Cast to make TypeScript happy
-                const category = categoryDoc as Doc<"fundCategories">;
-                resourceDetails = {
-                  name: category.name,
-                };
-              }
-            }
-          } catch (error) {
-            // Ignore errors if ID is not valid
-            console.error("Error fetching fund category:", error);
-          }
         }
 
         return {
