@@ -57,12 +57,6 @@ export default function LandingPage() {
               Pricing
             </Link>
             <Link
-              href="#latest-blog"
-              className="text-sm font-medium hover:text-emerald-600 transition-colors"
-            >
-              Latest Blog
-            </Link>
-            <Link
               href="/blog"
               className="text-sm font-medium hover:text-emerald-600 transition-colors"
             >
