@@ -53,7 +53,7 @@ export default function BlogPostPage() {
             
             <div className="prose prose-lg dark:prose-invert max-w-none">
               <p className="text-lg font-medium text-gray-700 dark:text-gray-200">
-                Business receipts are more than just pieces of paper—they're essential financial documents that serve multiple critical functions for businesses of all sizes. From tax compliance to expense tracking, understanding business receipts is fundamental to sound financial management.
+                Business receipts are more than just pieces of paper—they&apos;re essential financial documents that serve multiple critical functions for businesses of all sizes. From tax compliance to expense tracking, understanding business receipts is fundamental to sound financial management.
               </p>
               
               <h2 className="text-2xl font-bold text-gray-800 dark:text-white mt-10 mb-4">What Exactly Is a Business Receipt?</h2>
@@ -75,7 +75,7 @@ export default function BlogPostPage() {
               </ul>
               
               <p className="mb-4">
-                These elements collectively provide a comprehensive record of what was purchased, when, by whom, and for how much—information that's crucial for both the business and the customer.
+                These elements collectively provide a comprehensive record of what was purchased, when, by whom, and for how much—information that&apos;s crucial for both the business and the customer.
               </p>
               
               <h2 className="text-2xl font-bold text-gray-800 dark:text-white mt-10 mb-4">Types of Business Receipts</h2>
@@ -113,7 +113,7 @@ export default function BlogPostPage() {
               <h3 className="text-xl font-bold text-gray-800 dark:text-white mt-8 mb-3">4. Petty Cash Receipts</h3>
               
               <p className="mb-4">
-                These track small expenditures made from a company's petty cash fund. They help maintain accountability for minor expenses that might otherwise be difficult to track through standard accounting systems.
+                These track small expenditures made from a company&apos;s petty cash fund. They help maintain accountability for minor expenses that might otherwise be difficult to track through standard accounting systems.
               </p>
               
               <h3 className="text-xl font-bold text-gray-800 dark:text-white mt-8 mb-3">5. Deposit Receipts</h3>
@@ -263,11 +263,11 @@ export default function BlogPostPage() {
               <h2 className="text-2xl font-bold text-gray-800 dark:text-white mt-8 mb-4">Conclusion: The Multifaceted Value of Business Receipts</h2>
               
               <p className="text-lg mb-4">
-                Business receipts are far more than simple transaction records—they're essential financial documents with significant implications for tax compliance, legal protection, financial management, and business intelligence. By understanding their importance and implementing effective receipt management practices, businesses can transform what might seem like a mundane administrative task into a strategic advantage.
+                Business receipts are far more than simple transaction records—they&apos;re essential financial documents with significant implications for tax compliance, legal protection, financial management, and business intelligence. By understanding their importance and implementing effective receipt management practices, businesses can transform what might seem like a mundane administrative task into a strategic advantage.
               </p>
               
               <p className="text-lg font-medium mb-12">
-                In today's digital business environment, modernizing your approach to receipt management isn't just about compliance—it's about unlocking valuable insights, improving efficiency, and positioning your business for success in an increasingly data-driven marketplace.
+                In today&apos;s digital business environment, modernizing your approach to receipt management isn&apos;t just about compliance—it&apos;s about unlocking valuable insights, improving efficiency, and positioning your business for success in an increasingly data-driven marketplace.
               </p>
               
               <div className="bg-emerald-100 dark:bg-emerald-900/20 p-8 rounded-lg shadow-md text-center my-12">

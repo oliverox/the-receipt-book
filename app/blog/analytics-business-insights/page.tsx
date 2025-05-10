@@ -53,11 +53,11 @@ export default function BlogPostPage() {
             
             <div className="prose prose-lg dark:prose-invert max-w-none">
               <p className="text-lg font-medium text-gray-700 dark:text-gray-200">
-                Most businesses view receipts as necessary documentation for accounting and tax purposes—but they're overlooking a goldmine of strategic insights. Your receipt data contains valuable information that, when properly analyzed, can reveal surprising patterns and opportunities for optimizing your business operations.
+                Most businesses view receipts as necessary documentation for accounting and tax purposes—but they&apos;re overlooking a goldmine of strategic insights. Your receipt data contains valuable information that, when properly analyzed, can reveal surprising patterns and opportunities for optimizing your business operations.
               </p>
               
               <p className="mb-6">
-                Let's explore five powerful business insights you can extract from your receipt data that might be hiding in plain sight.
+                Let&apos;s explore five powerful business insights you can extract from your receipt data that might be hiding in plain sight.
               </p>
               
               <h2 className="text-2xl font-bold text-gray-800 dark:text-white mt-10 mb-4">1. Spending Pattern Analysis Reveals Cash Flow Optimization Opportunities</h2>
@@ -79,7 +79,7 @@ export default function BlogPostPage() {
               </ul>
               
               <p className="mb-4">
-                With Digital Receipt Pro's analytics dashboard, one e-commerce business discovered that 78% of their shipping expenses occurred in the last week of the month, creating unnecessary cash flow pressure. By implementing a more distributed shipping schedule, they improved cash flow consistency and negotiated better rates with their logistics provider.
+                With Digital Receipt Pro&apos;s analytics dashboard, one e-commerce business discovered that 78% of their shipping expenses occurred in the last week of the month, creating unnecessary cash flow pressure. By implementing a more distributed shipping schedule, they improved cash flow consistency and negotiated better rates with their logistics provider.
               </p>
               
               <h3 className="text-xl font-bold text-gray-800 dark:text-white mt-8 mb-3">Volume-Based Discount Opportunities</h3>
@@ -119,7 +119,7 @@ export default function BlogPostPage() {
               </ul>
               
               <p className="mb-4">
-                A retail business using Digital Receipt Pro's vendor analysis discovered they were spending over $50,000 annually with a supplier who wasn't offering them any volume discounts. Armed with this data, they negotiated a 12% price reduction and preferential delivery terms.
+                A retail business using Digital Receipt Pro&apos;s vendor analysis discovered they were spending over $50,000 annually with a supplier who wasn&apos;t offering them any volume discounts. Armed with this data, they negotiated a 12% price reduction and preferential delivery terms.
               </p>
               
               <h3 className="text-xl font-bold text-gray-800 dark:text-white mt-8 mb-3">Price Variation Detection</h3>
@@ -193,13 +193,13 @@ export default function BlogPostPage() {
               </p>
               
               <ul className="list-disc pl-6 space-y-2 mb-8">
-                <li>Are there industry-specific deductions you qualify for but haven't been claiming?</li>
+                <li>Are there industry-specific deductions you qualify for but haven&apos;t been claiming?</li>
                 <li>Could certain expenses be reclassified for more favorable tax treatment?</li>
                 <li>Are you missing specialized credits related to research, development, or sustainability initiatives?</li>
               </ul>
               
               <p className="mb-4">
-                A manufacturing business using Digital Receipt Pro's categorization features discovered $75,000 in expenses that qualified for research and development tax credits they hadn't previously claimed. This resulted in a significant tax reduction for the current year and amended returns for previous years.
+                A manufacturing business using Digital Receipt Pro&apos;s categorization features discovered $75,000 in expenses that qualified for research and development tax credits they hadn&apos;t previously claimed. This resulted in a significant tax reduction for the current year and amended returns for previous years.
               </p>
               
               <h3 className="text-xl font-bold text-gray-800 dark:text-white mt-8 mb-3">Timing Optimization</h3>
@@ -234,7 +234,7 @@ export default function BlogPostPage() {
               
               <ul className="list-disc pl-6 space-y-2 mb-8">
                 <li>Which products or services are frequently purchased together?</li>
-                <li>Are there logical pairings that aren't being promoted effectively?</li>
+                <li>Are there logical pairings that aren&apos;t being promoted effectively?</li>
                 <li>What supplementary offerings could enhance existing products?</li>
               </ul>
               
@@ -250,7 +250,7 @@ export default function BlogPostPage() {
               
               <ul className="list-disc pl-6 space-y-2 mb-8">
                 <li>Which services or resources have the highest utilization rates?</li>
-                <li>Are there underutilized assets or services you're paying for?</li>
+                <li>Are there underutilized assets or services you&apos;re paying for?</li>
                 <li>How could resources be reallocated to higher-value activities?</li>
               </ul>
               
@@ -287,11 +287,11 @@ export default function BlogPostPage() {
               <h2 className="text-2xl font-bold text-gray-800 dark:text-white mt-8 mb-4">Conclusion: From Documentation to Strategic Intelligence</h2>
               
               <p className="text-lg mb-4">
-                Your receipt data represents far more than required documentation for accounting and tax purposes—it's a treasure trove of strategic business intelligence waiting to be unlocked. By implementing the right digital tools and analytical approaches, you can transform this often-overlooked resource into actionable insights that drive efficiency, profitability, and growth.
+                Your receipt data represents far more than required documentation for accounting and tax purposes—it&apos;s a treasure trove of strategic business intelligence waiting to be unlocked. By implementing the right digital tools and analytical approaches, you can transform this often-overlooked resource into actionable insights that drive efficiency, profitability, and growth.
               </p>
               
               <p className="text-lg font-medium mb-12">
-                The businesses that gain competitive advantage in today's data-driven environment aren't necessarily those with the most data, but those that extract the most valuable insights from the data they already have. Your receipts are an excellent place to start.
+                The businesses that gain competitive advantage in today&apos;s data-driven environment aren&apos;t necessarily those with the most data, but those that extract the most valuable insights from the data they already have. Your receipts are an excellent place to start.
               </p>
               
               <div className="bg-emerald-100 dark:bg-emerald-900/20 p-8 rounded-lg shadow-md text-center my-12">

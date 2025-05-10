@@ -57,6 +57,12 @@ export default function LandingPage() {
               Pricing
             </Link>
             <Link
+              href="#latest-blog"
+              className="text-sm font-medium hover:text-emerald-600 transition-colors"
+            >
+              Latest Blog
+            </Link>
+            <Link
               href="/blog"
               className="text-sm font-medium hover:text-emerald-600 transition-colors"
             >
@@ -366,6 +372,59 @@ export default function LandingPage() {
                   {isSignedIn ? 'Go to Dashboard' : 'Contact Sales'}
                 </Button>
               </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="latest-blog" className="py-20">
+          <div className="mx-auto max-w-7xl w-full px-4 sm:px-6">
+            <h2 className="text-3xl font-bold text-center mb-6">
+              Latest Post
+            </h2>
+            <p className="text-center text-lg max-w-3xl mx-auto mb-12 text-gray-500">
+              Explore expert tips, guides, and insights to help you manage receipts better
+            </p>
+
+            <div className="max-w-4xl mx-auto bg-white dark:bg-slate-800 rounded-lg overflow-hidden shadow-md">
+              <div className="md:flex">
+                <div className="md:w-2/5 relative h-64 md:h-auto">
+                  <Image
+                    src="/blog/business-receipt.jpg"
+                    alt="What is a Business Receipt? A Complete Guide"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 40vw"
+                    className="object-cover"
+                  />
+                </div>
+                <div className="p-8 md:w-3/5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-xs font-medium px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full">
+                      Fundamentals
+                    </span>
+                    <span className="text-xs text-gray-500">May 12, 2025 • 4 min read</span>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-3">
+                    What is a Business Receipt? A Complete Guide
+                  </h3>
+                  <p className="text-gray-500 mb-6">
+                    Understanding the essentials of business receipts, their legal importance, and how digital technologies are transforming receipt management for modern businesses.
+                  </p>
+                  <Link href="/blog/what-is-business-receipt">
+                    <Button className="bg-emerald-600 hover:bg-emerald-700">
+                      Read Article
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center mt-8">
+              <Link href="/blog">
+                <Button variant="outline">
+                  View All Articles
+                </Button>
+              </Link>
             </div>
           </div>
         </section>
